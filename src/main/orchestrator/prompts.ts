@@ -1,0 +1,148 @@
+import { listTools } from '../services/tools/registry.js';
+import type { Plan, Observation, TestReport, Verdict } from '@shared/agent';
+
+/**
+ * Static tool catalog string handed to the executor.
+ * We rebuild it per-call so newly-registered tools are picked up automatically.
+ */
+function toolCatalog(): string {
+  return listTools()
+    .map((t) => `- ${t.name}: ${t.description}`)
+    .join('\n');
+}
+
+/* ───────── Planner ───────── */
+
+export const PLANNER_SYSTEM = `You are the PLANNER agent in an autonomous coding system.
+Your job: read the user's goal and produce a short, concrete plan of 1-6 steps.
+
+Rules:
+- Output ONLY a JSON object. No prose, no fences.
+- Steps must be small, verifiable, and ordered. Prefer fewer larger steps over many tiny ones.
+- The final step should always include creating or updating tests when the goal involves code.
+- Do not invent files that do not exist; rely on the executor to inspect the workspace.
+
+Schema:
+{
+  "summary": "one-sentence restatement of the goal",
+  "steps": [
+    { "id": "s1", "goal": "...", "rationale": "..." }
+  ]
+}`;
+
+export function plannerUser(prompt: string, workspaceSummary: string): string {
+  return `USER GOAL:
+${prompt}
+
+WORKSPACE OVERVIEW (top of tree):
+${workspaceSummary}
+
+Produce the plan now.`;
+}
+
+/* ───────── Executor ───────── */
+
+export const EXECUTOR_SYSTEM = `You are the EXECUTOR agent. You carry out one plan step at a time by calling tools.
+
+You will be given:
+- The full plan
+- The CURRENT step you must complete
+- A history of prior tool calls and their observations
+- The list of available tools
+
+On each turn, output ONE JSON object describing the next single tool call, OR declare the step done.
+
+Rules:
+- Output ONLY JSON. No prose, no markdown fences.
+- Prefer reading and listing before writing. Verify assumptions.
+- Use \`apply_patch\` for edits to existing files; use \`write_file\` for new files.
+- After making changes that satisfy the current step's goal, set "done": true and "action": null.
+- Do not run tests here — the TESTER agent does that after all steps.
+- Keep file contents minimal and correct.
+
+Schema:
+{
+  "thought": "one short sentence of reasoning",
+  "action": { "tool": "<tool_name>", "args": { ... } } | null,
+  "done": <true|false>
+}`;
+
+export function executorUser(
+  goal: string,
+  plan: Plan,
+  currentStepId: string,
+  history: Observation[],
+  hint?: string,
+): string {
+  const planStr = plan.steps
+    .map((s) => `${s.id === currentStepId ? '→' : ' '} [${s.id}] ${s.goal}`)
+    .join('\n');
+  const histStr = history.length
+    ? history
+        .map(
+          (o, i) =>
+            `(${i + 1}) tool=${o.tool} ok=${o.ok}\nargs=${JSON.stringify(o.args).slice(0, 400)}\nout=${(o.error ?? o.output).slice(0, 800)}`,
+        )
+        .join('\n---\n')
+    : '(no prior observations)';
+
+  return `OVERALL GOAL:
+${goal}
+
+PLAN:
+${planStr}
+
+CURRENT STEP: ${currentStepId}
+${hint ? `\nHINT FROM CRITIC: ${hint}\n` : ''}
+TOOLS AVAILABLE:
+${toolCatalog()}
+
+OBSERVATIONS SO FAR:
+${histStr}
+
+Choose the next single action.`;
+}
+
+/* ───────── Critic ───────── */
+
+export const CRITIC_SYSTEM = `You are the CRITIC agent. You judge whether the task is complete after the executor and tester have run.
+
+Rules:
+- Output ONLY JSON. No prose, no fences.
+- Mark done=true ONLY if (a) tests passed (or no tests were applicable and the goal is clearly satisfied) AND (b) all plan steps appear addressed.
+- If not done, provide a concise nextHint to the executor describing what to fix or do differently.
+
+Schema:
+{ "done": <true|false>, "reason": "...", "nextHint": "..." }`;
+
+export function criticUser(
+  prompt: string,
+  plan: Plan,
+  history: Observation[],
+  testReport: TestReport,
+): string {
+  return `USER GOAL:
+${prompt}
+
+PLAN:
+${plan.steps.map((s) => `[${s.id}] ${s.goal}`).join('\n')}
+
+EXECUTOR OBSERVATIONS (last 8):
+${history
+  .slice(-8)
+  .map((o) => `tool=${o.tool} ok=${o.ok} ${(o.error ?? o.output).slice(0, 200)}`)
+  .join('\n')}
+
+TEST REPORT:
+ran=${testReport.ran} ok=${testReport.ok} exit=${testReport.exitCode ?? 'n/a'} detected=${testReport.detected ?? 'n/a'}
+log:
+${testReport.log.slice(-1500)}
+
+Render your verdict.`;
+}
+
+/* ───────── Misc helpers reused across agents ───────── */
+
+export function snapshotVerdict(v: Verdict): string {
+  return `done=${v.done} reason=${v.reason}${v.nextHint ? ` hint=${v.nextHint}` : ''}`;
+}
