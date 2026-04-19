@@ -3,6 +3,7 @@ import type { RunnableConfig } from '@langchain/core/runnables';
 import { getProvider } from '../services/llm/index.js';
 import { invokeTool } from '../services/tools/registry.js';
 import { fileTree } from '../services/workspaces.js';
+import { skillCatalog, resolveSkillBodies } from '../services/skills.js';
 import { extractJson } from '../util/json.js';
 import { readdir } from 'node:fs/promises';
 import {
@@ -21,7 +22,7 @@ import type {
   Verdict,
 } from '@shared/agent';
 import type { ToolName } from '../services/tools/types.js';
-import { addStep, updateStep } from '../services/store.js';
+import { addStep, updateStep, updateTask } from '../services/store.js';
 import { taskBus } from '../services/events.js';
 import { logger } from '../services/logger.js';
 
@@ -182,18 +183,25 @@ async function plannerNode(
   const { stepId } = emitStepStarted(ctx, 'planner', undefined, { prompt: state.prompt });
   try {
     const summary = await workspaceSummary(ctx.workspaceId, ctx.workspacePath);
+    const catalog = await skillCatalog();
     const plan = await llmJson<Plan>(
       ctx,
       'planner',
       PLANNER_SYSTEM,
-      plannerUser(state.prompt, summary),
+      plannerUser(state.prompt, summary, catalog),
     );
     if (!plan?.steps?.length) throw new Error('planner returned empty plan');
-    // Normalise step IDs
     plan.steps = plan.steps.map((s, i) => ({
       ...s,
       id: s.id || `s${i + 1}`,
     }));
+    // Filter selectedSkills to only those that actually exist + are enabled.
+    const validNames = new Set(catalog.map((c) => c.name));
+    const raw = (plan as Plan & { selected_skills?: string[] }).selected_skills
+      ?? plan.selectedSkills
+      ?? [];
+    plan.selectedSkills = raw.filter((n) => validNames.has(n));
+    updateTask(ctx.taskId, { planJson: JSON.stringify(plan).slice(0, 100_000) });
     emitStepFinished(ctx, stepId, true, plan);
     taskBus.emit(ctx.taskId, { type: 'plan', taskId: ctx.taskId, ts: Date.now(), plan });
     return { plan };
@@ -218,6 +226,8 @@ async function executorNode(
   const hint = ctx.hint;
   ctx.hint = undefined;
 
+  const skills = await resolveSkillBodies(plan.selectedSkills ?? []);
+
   for (const planStep of plan.steps) {
     let stepBudget = EXECUTOR_BUDGET_PER_STEP;
     let stepHint = hint;
@@ -229,7 +239,7 @@ async function executorNode(
         ctx,
         'executor',
         EXECUTOR_SYSTEM,
-        executorUser(state.prompt, plan, planStep.id, histForLLM, stepHint),
+        executorUser(state.prompt, plan, planStep.id, histForLLM, skills, stepHint),
       );
       stepHint = undefined;
 

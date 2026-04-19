@@ -4,7 +4,7 @@ import { nanoid } from 'nanoid';
 import { getDb } from '../db/index.js';
 import { approvals } from '../db/schema.js';
 import { taskBus } from './events.js';
-import { getSetting } from './settings.js';
+import { getSetting, setSetting } from './settings.js';
 import type { ToolName } from './tools/types.js';
 
 export type ApprovalDecision = 'approve' | 'approve_session' | 'deny';
@@ -36,7 +36,6 @@ export async function isAutoApprove(): Promise<boolean> {
 }
 
 export async function setAutoApprove(value: boolean): Promise<void> {
-  const { setSetting } = await import('./settings.js');
   await setSetting(SETTING_AUTO_APPROVE, value ? 'true' : 'false');
 }
 

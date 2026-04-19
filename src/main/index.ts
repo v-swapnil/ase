@@ -6,6 +6,7 @@ import { APP_BUNDLE_ID } from '@shared/constants';
 import { initDb, closeDb } from './db/index.js';
 import { appRouter } from './ipc/router.js';
 import { logger } from './services/logger.js';
+import { syncSkills } from './services/skills.js';
 
 let mainWindow: BrowserWindow | null = null;
 
@@ -52,6 +53,7 @@ app.whenReady().then(() => {
   });
 
   initDb();
+  syncSkills().catch((err) => logger.warn({ err }, 'initial skill sync failed'));
   createWindow();
 
   app.on('activate', () => {

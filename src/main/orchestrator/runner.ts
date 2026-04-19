@@ -11,6 +11,7 @@ import { sessions } from '../db/schema.js';
 import { eq } from 'drizzle-orm';
 import { logger } from '../services/logger.js';
 import { clearTaskApprovals } from '../services/approvals.js';
+import { createBranch, commitAll } from '../services/git.js';
 import { buildGraph, type RunCtx, type AgentState } from './graph.js';
 import type { TaskResult } from '@shared/agent';
 
@@ -65,6 +66,34 @@ async function doRun(taskId: string, ctrl: AbortController): Promise<TaskResult>
   updateTask(taskId, { status: 'running', startedAt: Date.now() });
   taskBus.emit(taskId, { type: 'task.started', taskId, ts: Date.now() });
 
+  // Optional: auto-branch per task before any code is written.
+  const autoBranch = (await getSetting(SETTING_KEYS.GIT_AUTO_BRANCH)) === '1';
+  let branchName: string | null = null;
+  if (autoBranch) {
+    branchName = `ase/${taskId}`;
+    try {
+      await createBranch(session.workspaceId, branchName);
+      taskBus.emit(taskId, {
+        type: 'log',
+        taskId,
+        ts: Date.now(),
+        stream: 'stdout',
+        text: `[git] checked out branch ${branchName}\n`,
+      });
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      log.warn({ taskId, err: msg }, 'auto-branch failed');
+      taskBus.emit(taskId, {
+        type: 'log',
+        taskId,
+        ts: Date.now(),
+        stream: 'stderr',
+        text: `[git] auto-branch failed: ${msg}\n`,
+      });
+      branchName = null;
+    }
+  }
+
   const ctx: RunCtx = {
     taskId,
     workspaceId: session.workspaceId,
@@ -99,6 +128,28 @@ async function doRun(taskId: string, ctrl: AbortController): Promise<TaskResult>
         ? final.verdict?.reason
         : final.verdict?.reason ?? 'iteration cap reached',
     };
+
+    if (succeeded && branchName) {
+      try {
+        const r = await commitAll(
+          session.workspaceId,
+          `ase: ${task.prompt.slice(0, 72)}\n\ntask: ${task.id}`,
+        );
+        if (r.committed) {
+          taskBus.emit(taskId, {
+            type: 'log',
+            taskId,
+            ts: Date.now(),
+            stream: 'stdout',
+            text: `[git] committed ${r.sha} on ${branchName}\n`,
+          });
+        }
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        log.warn({ taskId, err: msg }, 'auto-commit failed');
+      }
+    }
+
     return finish(task, result);
   } catch (err) {
     const aborted = ctrl.signal.aborted;

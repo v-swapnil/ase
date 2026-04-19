@@ -1,10 +1,20 @@
-import { readdir, readFile, stat } from 'node:fs/promises';
-import { join, sep } from 'node:path';
+import { readFile } from 'node:fs/promises';
+import { join, relative, sep } from 'node:path';
+import fg from 'fast-glob';
 
-const DEFAULT_IGNORED = new Set([
-  '.git', 'node_modules', '.DS_Store', '.next', 'dist', 'out', '.turbo',
-  '.venv', 'venv', '__pycache__', '.cache',
-]);
+const DEFAULT_IGNORE = [
+  '**/.git/**',
+  '**/node_modules/**',
+  '**/.DS_Store',
+  '**/.next/**',
+  '**/dist/**',
+  '**/out/**',
+  '**/.turbo/**',
+  '**/.venv/**',
+  '**/venv/**',
+  '**/__pycache__/**',
+  '**/.cache/**',
+];
 
 export interface GrepHit {
   path: string;
@@ -23,60 +33,51 @@ export interface GrepOptions {
 }
 
 /**
- * Recursive content grep within `root`. Returns hits sorted by file then line.
+ * Recursive content grep within `root`. File traversal via fast-glob;
+ * per-file scanning is plain string/regex search.
  */
 export async function grep(root: string, opts: GrepOptions): Promise<GrepHit[]> {
   const maxHits = opts.maxHits ?? 500;
   const maxFileBytes = opts.maxFileBytes ?? 512 * 1024;
-  const start = opts.rel ? join(root, opts.rel) : root;
+  const cwd = opts.rel ? join(root, opts.rel) : root;
 
   const matcher = opts.isRegex
     ? new RegExp(opts.pattern, opts.caseSensitive ? '' : 'i')
     : null;
   const needle = opts.caseSensitive ? opts.pattern : opts.pattern.toLowerCase();
 
-  const hits: GrepHit[] = [];
+  const entries = await fg('**/*', {
+    cwd,
+    ignore: DEFAULT_IGNORE,
+    onlyFiles: true,
+    dot: true,
+    suppressErrors: true,
+    stats: true,
+  });
 
-  async function walk(absDir: string): Promise<void> {
-    if (hits.length >= maxHits) return;
-    let entries: string[];
+  const hits: GrepHit[] = [];
+  for (const entry of entries) {
+    if (hits.length >= maxHits) break;
+    const stats = (entry as { stats?: { size: number } }).stats;
+    if (stats && stats.size > maxFileBytes) continue;
+    const abs = join(cwd, (entry as { path: string }).path);
+    let text: string;
     try {
-      entries = await readdir(absDir);
+      text = await readFile(abs, 'utf8');
     } catch {
-      return;
+      continue;
     }
-    for (const entry of entries) {
-      if (DEFAULT_IGNORED.has(entry)) continue;
-      const abs = join(absDir, entry);
-      let s;
-      try {
-        s = await stat(abs);
-      } catch {
-        continue;
-      }
-      if (s.isDirectory()) {
-        await walk(abs);
-      } else if (s.isFile() && s.size <= maxFileBytes) {
-        try {
-          const text = await readFile(abs, 'utf8');
-          const lines = text.split('\n');
-          for (let i = 0; i < lines.length; i++) {
-            const line = lines[i] ?? '';
-            const hay = opts.caseSensitive ? line : line.toLowerCase();
-            const match = matcher ? matcher.test(line) : hay.includes(needle);
-            if (match) {
-              const rel = abs.slice(root.length + 1).split(sep).join('/');
-              hits.push({ path: rel, line: i + 1, text: line });
-              if (hits.length >= maxHits) return;
-            }
-          }
-        } catch {
-          /* binary or unreadable — skip */
-        }
+    const lines = text.split('\n');
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i] ?? '';
+      const hay = opts.caseSensitive ? line : line.toLowerCase();
+      const match = matcher ? matcher.test(line) : hay.includes(needle);
+      if (match) {
+        const rel = relative(root, abs).split(sep).join('/');
+        hits.push({ path: rel, line: i + 1, text: line });
+        if (hits.length >= maxHits) break;
       }
     }
   }
-
-  await walk(start);
   return hits;
 }

@@ -9,6 +9,8 @@ import { llmRouter } from './llm.js';
 import { toolRouter } from './tool.js';
 import { sessionRouter, taskRouter } from './session.js';
 import { approvalRouter } from './approval.js';
+import { skillRouter } from './skill.js';
+import { gitRouter } from './git.js';
 
 async function checkOllama(): Promise<AppHealth['ollama']> {
   try {
@@ -46,6 +48,8 @@ export const appRouter = router({
   session: sessionRouter,
   task: taskRouter,
   approval: approvalRouter,
+  skill: skillRouter,
+  git: gitRouter,
 });
 
 export type AppRouter = typeof appRouter;

@@ -24,4 +24,5 @@ export async function deleteSetting(key: string): Promise<void> {
 export const SETTING_KEYS = {
   ACTIVE_WORKSPACE: 'activeWorkspaceId',
   ACTIVE_MODEL: 'activeModel',
+  GIT_AUTO_BRANCH: 'gitAutoBranch',
 } as const;

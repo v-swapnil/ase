@@ -6,7 +6,11 @@ export type ToolName =
   | 'list_dir'
   | 'grep'
   | 'run_shell'
-  | 'run_tests';
+  | 'run_tests'
+  | 'git_status'
+  | 'git_diff'
+  | 'git_branch'
+  | 'git_commit';
 
 /** ───────── Plan ───────── */
 
@@ -19,6 +23,8 @@ export interface PlanStep {
 export interface Plan {
   summary: string;
   steps: PlanStep[];
+  /** Skill names the planner judged useful for this task. */
+  selectedSkills?: string[];
 }
 
 /** ───────── Executor I/O ───────── */

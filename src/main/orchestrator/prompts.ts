@@ -1,4 +1,5 @@
 import { listTools } from '../services/tools/registry.js';
+import type { SkillCatalogEntry } from '../services/skills.js';
 import type { Plan, Observation, TestReport, Verdict } from '@shared/agent';
 
 /**
@@ -14,28 +15,44 @@ function toolCatalog(): string {
 /* ───────── Planner ───────── */
 
 export const PLANNER_SYSTEM = `You are the PLANNER agent in an autonomous coding system.
-Your job: read the user's goal and produce a short, concrete plan of 1-6 steps.
+Your job: read the user's goal and produce a short, concrete plan of 1-6 steps,
+and pick which SKILLS apply.
 
 Rules:
 - Output ONLY a JSON object. No prose, no fences.
 - Steps must be small, verifiable, and ordered. Prefer fewer larger steps over many tiny ones.
 - The final step should always include creating or updating tests when the goal involves code.
 - Do not invent files that do not exist; rely on the executor to inspect the workspace.
+- For "selected_skills": include 0-3 skill names from the SKILLS list whose "when_to_use"
+  clearly matches the user's goal. Omit the field if no skill applies. Never invent names.
 
 Schema:
 {
   "summary": "one-sentence restatement of the goal",
+  "selected_skills": ["skill-name", ...],
   "steps": [
     { "id": "s1", "goal": "...", "rationale": "..." }
   ]
 }`;
 
-export function plannerUser(prompt: string, workspaceSummary: string): string {
+export function plannerUser(
+  prompt: string,
+  workspaceSummary: string,
+  skills: SkillCatalogEntry[],
+): string {
+  const skillsStr = skills.length
+    ? skills
+        .map((s) => `- ${s.name}: ${s.description}\n  when_to_use: ${s.when_to_use}`)
+        .join('\n')
+    : '(none enabled)';
   return `USER GOAL:
 ${prompt}
 
 WORKSPACE OVERVIEW (top of tree):
 ${workspaceSummary}
+
+SKILLS AVAILABLE:
+${skillsStr}
 
 Produce the plan now.`;
 }
@@ -49,6 +66,7 @@ You will be given:
 - The CURRENT step you must complete
 - A history of prior tool calls and their observations
 - The list of available tools
+- Optional SKILLS — domain instructions you must follow when relevant
 
 On each turn, output ONE JSON object describing the next single tool call, OR declare the step done.
 
@@ -59,6 +77,7 @@ Rules:
 - After making changes that satisfy the current step's goal, set "done": true and "action": null.
 - Do not run tests here — the TESTER agent does that after all steps.
 - Keep file contents minimal and correct.
+- Apply SKILL guidance when the current step falls within that skill's domain.
 
 Schema:
 {
@@ -72,6 +91,7 @@ export function executorUser(
   plan: Plan,
   currentStepId: string,
   history: Observation[],
+  skills: { name: string; body: string }[],
   hint?: string,
 ): string {
   const planStr = plan.steps
@@ -85,6 +105,9 @@ export function executorUser(
         )
         .join('\n---\n')
     : '(no prior observations)';
+  const skillsStr = skills.length
+    ? skills.map((s) => `=== SKILL: ${s.name} ===\n${s.body}`).join('\n\n')
+    : '(no skills selected)';
 
   return `OVERALL GOAL:
 ${goal}
@@ -94,6 +117,9 @@ ${planStr}
 
 CURRENT STEP: ${currentStepId}
 ${hint ? `\nHINT FROM CRITIC: ${hint}\n` : ''}
+SKILLS:
+${skillsStr}
+
 TOOLS AVAILABLE:
 ${toolCatalog()}
 
