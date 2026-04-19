@@ -1,4 +1,4 @@
-import { dialog } from 'electron';
+import { BrowserWindow, dialog } from 'electron';
 import { z } from 'zod';
 import { router, publicProcedure } from './trpc.js';
 import {
@@ -24,10 +24,16 @@ export const workspaceRouter = router({
     .input(z.object({ name: z.string().min(1).max(64) }))
     .mutation(({ input }) => createManagedWorkspace(input.name)),
   openExisting: publicProcedure.mutation(async () => {
-    const res = await dialog.showOpenDialog({
-      title: 'Open existing folder as workspace',
-      properties: ['openDirectory', 'createDirectory'],
-    });
+    const parent = BrowserWindow.getFocusedWindow() ?? BrowserWindow.getAllWindows()[0];
+    const res = await (parent
+      ? dialog.showOpenDialog(parent, {
+          title: 'Open existing folder as workspace',
+          properties: ['openDirectory', 'createDirectory'],
+        })
+      : dialog.showOpenDialog({
+          title: 'Open existing folder as workspace',
+          properties: ['openDirectory', 'createDirectory'],
+        }));
     if (res.canceled || !res.filePaths[0]) return null;
     return attachExistingWorkspace(res.filePaths[0]);
   }),

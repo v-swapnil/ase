@@ -5,6 +5,8 @@ import { cn } from '../lib/utils';
 
 export function WorkspaceSwitcher() {
   const [open, setOpen] = useState(false);
+  const [creating, setCreating] = useState(false);
+  const [newName, setNewName] = useState('');
   const utils = trpc.useUtils();
   const list = trpc.workspace.list.useQuery();
   const { workspaceId, setActive } = useActiveWorkspace();
@@ -12,6 +14,8 @@ export function WorkspaceSwitcher() {
     onSuccess: async (ws) => {
       await utils.workspace.list.invalidate();
       await setActive(ws.id);
+      setCreating(false);
+      setNewName('');
       setOpen(false);
     },
   });
@@ -57,7 +61,7 @@ export function WorkspaceSwitcher() {
                   setOpen(false);
                 }}
                 className={cn(
-                  'flex w-full flex-col gap-0.5 border-b border-ink-800/60 px-4 py-2 text-left hover:bg-ink-800/60',
+                  'app-no-drag flex w-full flex-col gap-0.5 border-b border-ink-800/60 px-4 py-2 text-left hover:bg-ink-800/60',
                   w.id === workspaceId && 'bg-ink-800/40',
                 )}
               >
@@ -74,20 +78,57 @@ export function WorkspaceSwitcher() {
           <div className="grid grid-cols-2 border-t border-ink-800">
             <button
               onClick={() => {
-                const name = window.prompt('Workspace name?');
-                if (name) create.mutate({ name });
+                setCreating((c) => !c);
+                setNewName('');
               }}
-              className="border-r border-ink-800 px-3 py-2 font-mono text-[11px] uppercase tracking-widest2 text-amber hover:bg-ink-800"
+              className="app-no-drag border-r border-ink-800 px-3 py-2 font-mono text-[11px] uppercase tracking-widest2 text-amber hover:bg-ink-800"
             >
               + new
             </button>
             <button
               onClick={() => openExisting.mutate()}
-              className="px-3 py-2 font-mono text-[11px] uppercase tracking-widest2 text-ink-200 hover:bg-ink-800"
+              disabled={openExisting.isLoading}
+              className="app-no-drag px-3 py-2 font-mono text-[11px] uppercase tracking-widest2 text-ink-200 hover:bg-ink-800 disabled:opacity-50"
             >
-              open folder…
+              {openExisting.isLoading ? 'opening…' : 'open folder…'}
             </button>
           </div>
+          {creating && (
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                const name = newName.trim();
+                if (!name) return;
+                create.mutate({ name });
+              }}
+              className="flex items-center gap-2 border-t border-ink-800 px-3 py-2"
+            >
+              <input
+                autoFocus
+                value={newName}
+                onChange={(e) => setNewName(e.target.value)}
+                placeholder="workspace name"
+                className="app-no-drag flex-1 rounded border border-ink-700 bg-ink-950 px-2 py-1 font-mono text-[11px] text-ink-100 placeholder:text-ink-500 focus:border-amber focus:outline-none"
+              />
+              <button
+                type="submit"
+                disabled={!newName.trim() || create.isLoading}
+                className="app-no-drag rounded border border-amber bg-amber/10 px-2.5 py-1 font-mono text-[10px] uppercase tracking-widest2 text-amber hover:bg-amber/20 disabled:opacity-50"
+              >
+                {create.isLoading ? '…' : 'create'}
+              </button>
+            </form>
+          )}
+          {create.error && (
+            <div className="border-t border-ink-800 px-3 py-2 font-mono text-[10px] text-signal-err">
+              {create.error.message}
+            </div>
+          )}
+          {openExisting.error && (
+            <div className="border-t border-ink-800 px-3 py-2 font-mono text-[10px] text-signal-err">
+              {openExisting.error.message}
+            </div>
+          )}
         </div>
       )}
     </div>
