@@ -2,10 +2,17 @@ import { PageShell } from '../components/PageShell';
 import { ModelManager } from '../components/ModelManager';
 import { DebugChat } from '../components/DebugChat';
 import { trpc } from '../trpc';
+import { useUI } from '../store/ui';
 
 export function Settings() {
   const health = trpc.health.useQuery();
   const utils = trpc.useUtils();
+  const theme = useUI((s) => s.theme);
+  const setThemeLocal = useUI((s) => s.setTheme);
+  const setTheme = trpc.settings.setTheme.useMutation({
+    onSuccess: () => utils.settings.theme.invalidate(),
+  });
+  const openLogs = trpc.settings.openLogsFolder.useMutation();
   const autoApprove = trpc.approval.autoApprove.useQuery();
   const setAuto = trpc.approval.setAutoApprove.useMutation({
     onSuccess: () => utils.approval.autoApprove.invalidate(),
@@ -27,7 +34,36 @@ export function Settings() {
           <ModelManager />
 
           <div className="mt-8">
-            <SectionTitle index="02" title="Safety" />
+            <SectionTitle index="02" title="Appearance" />
+            <div className="flex items-center gap-2">
+              <button
+                className={`rounded border px-3 py-1.5 font-mono text-[11px] uppercase tracking-widest2 ${theme === 'dark' ? 'border-amber-700/60 bg-amber-950/30 text-amber-300' : 'border-ink-700 text-ink-300 hover:border-ink-600'}`}
+                onClick={() => {
+                  setThemeLocal('dark');
+                  setTheme.mutate({ value: 'dark' });
+                }}
+                disabled={setTheme.isPending}
+              >
+                dark
+              </button>
+              <button
+                className={`rounded border px-3 py-1.5 font-mono text-[11px] uppercase tracking-widest2 ${theme === 'light' ? 'border-amber-700/60 bg-amber-950/30 text-amber-300' : 'border-ink-700 text-ink-300 hover:border-ink-600'}`}
+                onClick={() => {
+                  setThemeLocal('light');
+                  setTheme.mutate({ value: 'light' });
+                }}
+                disabled={setTheme.isPending}
+              >
+                light
+              </button>
+            </div>
+            <div className="mt-2 font-mono text-[10px] uppercase tracking-widest2 text-ink-500">
+              quick toggle: cmd/ctrl + shift + l
+            </div>
+          </div>
+
+          <div className="mt-8">
+            <SectionTitle index="03" title="Safety" />
             <ToggleCard
               checked={!!autoApprove.data}
               disabled={setAuto.isPending}
@@ -38,7 +74,7 @@ export function Settings() {
           </div>
 
           <div className="mt-8">
-            <SectionTitle index="03" title="Git" />
+            <SectionTitle index="04" title="Git" />
             <ToggleCard
               checked={!!autoBranch.data}
               disabled={setAutoBranch.isPending}
@@ -50,15 +86,25 @@ export function Settings() {
         </section>
 
         <section>
-          <SectionTitle index="04" title="Debug Chat" />
+          <SectionTitle index="05" title="Debug Chat" />
           <DebugChat />
 
           <div className="mt-8">
-            <SectionTitle index="05" title="System" />
+            <SectionTitle index="06" title="System" />
+            <div className="mb-3 flex items-center gap-2">
+              <button
+                onClick={() => openLogs.mutate()}
+                disabled={openLogs.isPending}
+                className="rounded border border-ink-700 px-3 py-1.5 font-mono text-[11px] uppercase tracking-widest2 text-ink-200 hover:border-ink-600 disabled:opacity-40"
+              >
+                {openLogs.isPending ? 'opening…' : 'open logs folder'}
+              </button>
+            </div>
             <Rows
               rows={[
                 ['app.version', health.data?.app.version ?? '...'],
                 ['db.path', health.data?.db.path ?? '...'],
+                ['logs.path', openLogs.data?.path ?? '...'],
                 ['ollama.url', health.data?.ollama.url ?? '...'],
                 [
                   'ollama.status',
@@ -66,6 +112,9 @@ export function Settings() {
                 ],
               ]}
             />
+            <div className="mt-3 rounded border border-ink-800 bg-ink-900/40 px-4 py-3 font-mono text-[10px] uppercase tracking-widest2 text-ink-400">
+              shortcuts: cmd/ctrl+1..7 navigate pages, cmd/ctrl+, opens settings
+            </div>
           </div>
         </section>
       </div>

@@ -23,3 +23,9 @@ export function logsDir(): string {
   mkdirSync(dir, { recursive: true });
   return dir;
 }
+
+export function reportsDir(): string {
+  const dir = join(logsDir(), 'reports');
+  mkdirSync(dir, { recursive: true });
+  return dir;
+}

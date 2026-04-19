@@ -25,4 +25,5 @@ export const SETTING_KEYS = {
   ACTIVE_WORKSPACE: 'activeWorkspaceId',
   ACTIVE_MODEL: 'activeModel',
   GIT_AUTO_BRANCH: 'gitAutoBranch',
+  UI_THEME: 'uiTheme',
 } as const;

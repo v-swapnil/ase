@@ -6,6 +6,8 @@ interface UIState {
   dirty: Record<string, string | undefined>;     // pathKey -> in-memory content
   setDirty: (pathKey: string, content: string | undefined) => void;
   clearDirty: (pathKey: string) => void;
+  theme: 'dark' | 'light';
+  setTheme: (theme: 'dark' | 'light') => void;
 }
 
 export const useUI = create<UIState>((set) => ({
@@ -20,6 +22,8 @@ export const useUI = create<UIState>((set) => ({
       delete next[pathKey];
       return { dirty: next };
     }),
+  theme: 'dark',
+  setTheme: (theme) => set({ theme }),
 }));
 
 export const dirtyKey = (workspaceId: string, path: string) => `${workspaceId}::${path}`;

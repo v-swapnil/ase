@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { observable } from '@trpc/server/observable';
+import { shell } from 'electron';
 import { router, publicProcedure } from './trpc.js';
 import {
   createSession,
@@ -16,6 +17,7 @@ import {
 } from '../services/store.js';
 import { enqueueTask, cancelQueuedOrRunning } from '../orchestrator/queue.js';
 import { taskBus, type TaskEvent } from '../services/events.js';
+import { exportTaskReport } from '../services/reports.js';
 
 export const sessionRouter = router({
   create: publicProcedure
@@ -106,6 +108,14 @@ export const taskRouter = router({
       const next = createTask(orig.sessionId, orig.prompt, orig.maxIterations);
       enqueueTask(next.id);
       return next;
+    }),
+
+  exportReport: publicProcedure
+    .input(z.object({ id: z.string().min(1) }))
+    .mutation(async ({ input }) => {
+      const out = await exportTaskReport(input.id);
+      shell.showItemInFolder(out.markdownPath);
+      return out;
     }),
 
   events: publicProcedure

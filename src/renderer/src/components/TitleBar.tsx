@@ -1,8 +1,15 @@
 import { trpc } from '../trpc';
 import { WorkspaceSwitcher } from './WorkspaceSwitcher';
+import { useUI } from '../store/ui';
 
 export function TitleBar() {
+  const utils = trpc.useUtils();
   const health = trpc.health.useQuery(undefined, { refetchInterval: 8000 });
+  const setTheme = trpc.settings.setTheme.useMutation({
+    onSuccess: () => utils.settings.theme.invalidate(),
+  });
+  const theme = useUI((s) => s.theme);
+  const setThemeLocal = useUI((s) => s.setTheme);
   const ollamaOk = health.data?.ollama.ok;
   const version = health.data?.app.version ?? '';
 
@@ -16,6 +23,17 @@ export function TitleBar() {
       </div>
       <div className="app-no-drag flex items-center gap-3 font-mono text-[10px] uppercase tracking-widest2">
         <ModelBadge />
+        <button
+          onClick={() => {
+            const next = theme === 'dark' ? 'light' : 'dark';
+            setThemeLocal(next);
+            setTheme.mutate({ value: next });
+          }}
+          className="rounded border border-ink-800 bg-ink-900/60 px-2 py-1 text-ink-300 hover:border-ink-700"
+          title="Toggle theme (Cmd/Ctrl+Shift+L)"
+        >
+          {theme === 'dark' ? 'light' : 'dark'}
+        </button>
         <WorkspaceSwitcher />
         <Status
           label="ollama"

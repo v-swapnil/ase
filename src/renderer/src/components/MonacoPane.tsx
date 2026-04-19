@@ -32,6 +32,7 @@ export function MonacoPane({ workspaceId, path }: Props) {
   const file = trpc.file.read.useQuery({ workspaceId, path });
   const write = trpc.file.write.useMutation();
   const dirty = useUI((s) => s.dirty);
+  const theme = useUI((s) => s.theme);
   const setDirty = useUI((s) => s.setDirty);
   const clearDirty = useUI((s) => s.clearDirty);
 
@@ -98,7 +99,7 @@ export function MonacoPane({ workspaceId, path }: Props) {
       </div>
       <div className="min-h-0 flex-1">
         <Editor
-          theme="vs-dark"
+          theme={theme === 'dark' ? 'vs-dark' : 'vs'}
           language={language}
           value={value}
           onChange={(v) => setDirty(key, v ?? '')}

@@ -5,6 +5,7 @@ import { ipcLink } from 'electron-trpc/renderer';
 import { HashRouter } from 'react-router-dom';
 import { trpc } from './trpc';
 import { App } from './App';
+import { AppErrorBoundary } from './components/AppErrorBoundary';
 import './styles/globals.css';
 
 const queryClient = new QueryClient({
@@ -20,7 +21,9 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
     <trpc.Provider client={trpcClient} queryClient={queryClient}>
       <QueryClientProvider client={queryClient}>
         <HashRouter>
-          <App />
+          <AppErrorBoundary>
+            <App />
+          </AppErrorBoundary>
         </HashRouter>
       </QueryClientProvider>
     </trpc.Provider>

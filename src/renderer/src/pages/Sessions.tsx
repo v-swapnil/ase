@@ -3,6 +3,7 @@ import Editor from '@monaco-editor/react';
 import { trpc } from '../trpc';
 import { useActiveWorkspace } from '../hooks/useActiveWorkspace';
 import { cn } from '../lib/utils';
+import { useUI } from '../store/ui';
 
 type TaskEvent =
   | { type: 'task.started'; taskId: string; ts: number }
@@ -241,6 +242,7 @@ function TaskView({ taskId }: { taskId: string }) {
   const retry = trpc.task.retry.useMutation({
     onSuccess: (t) => utils.task.list.invalidate({ sessionId: t.sessionId }),
   });
+  const exportReport = trpc.task.exportReport.useMutation();
   const decide = trpc.approval.decide.useMutation();
 
   const [events, setEvents] = useState<TaskEvent[]>([]);
@@ -313,13 +315,22 @@ function TaskView({ taskId }: { taskId: string }) {
               </button>
             )}
             {finished && (
-              <button
-                onClick={() => retry.mutate({ id: taskId })}
-                disabled={retry.isPending}
-                className="rounded border border-amber-700/60 px-2 py-0.5 font-mono text-[10px] uppercase tracking-widest2 text-amber-300 hover:bg-amber-950/40 disabled:opacity-40"
-              >
-                retry
-              </button>
+              <>
+                <button
+                  onClick={() => exportReport.mutate({ id: taskId })}
+                  disabled={exportReport.isPending}
+                  className="rounded border border-ink-700 px-2 py-0.5 font-mono text-[10px] uppercase tracking-widest2 text-ink-200 hover:border-ink-600 disabled:opacity-40"
+                >
+                  {exportReport.isPending ? 'exporting…' : 'export report'}
+                </button>
+                <button
+                  onClick={() => retry.mutate({ id: taskId })}
+                  disabled={retry.isPending}
+                  className="rounded border border-amber-700/60 px-2 py-0.5 font-mono text-[10px] uppercase tracking-widest2 text-amber-300 hover:bg-amber-950/40 disabled:opacity-40"
+                >
+                  retry
+                </button>
+              </>
             )}
           </div>
         </div>
@@ -564,6 +575,7 @@ function Line({
 
 function DiffPanel({ touchedKey }: { touchedKey: number }) {
   const { workspaceId } = useActiveWorkspace();
+  const theme = useUI((s) => s.theme);
   const status = trpc.git.status.useQuery(
     { workspaceId: workspaceId ?? '' },
     { enabled: !!workspaceId },
@@ -618,7 +630,7 @@ function DiffPanel({ touchedKey }: { touchedKey: number }) {
           <Editor
             value={text}
             language="diff"
-            theme="vs-dark"
+            theme={theme === 'dark' ? 'vs-dark' : 'vs'}
             options={{
               readOnly: true,
               minimap: { enabled: false },
