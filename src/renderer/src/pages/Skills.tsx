@@ -38,13 +38,13 @@ export function Skills() {
           <button
             onClick={() => refresh.mutate()}
             disabled={refresh.isPending}
-            className="rounded border border-ink-700 px-3 py-1.5 font-mono text-[10px] uppercase tracking-widest2 text-ink-200 hover:border-amber-500 hover:text-amber-400 disabled:opacity-40"
+            className="rounded border border-ink-700 px-3 py-1.5 font-mono text-ui-xs uppercase tracking-widest2 text-ink-200 hover:border-amber-500 hover:text-amber-400 disabled:opacity-40"
           >
             {refresh.isPending ? 'syncing…' : 'refresh'}
           </button>
           <button
             onClick={() => setShowNew(true)}
-            className="rounded border border-amber-700/60 bg-amber-950/30 px-3 py-1.5 font-mono text-[10px] uppercase tracking-widest2 text-amber-300 hover:bg-amber-950/60"
+            className="rounded border border-amber-700/60 bg-amber-950/30 px-3 py-1.5 font-mono text-ui-xs uppercase tracking-widest2 text-amber-300 hover:bg-amber-950/60"
           >
             + new skill
           </button>
@@ -53,7 +53,7 @@ export function Skills() {
     >
       <div className="grid h-[calc(100vh-220px)] grid-cols-[280px_1fr] gap-6">
         <aside className="flex min-h-0 flex-col">
-          <div className="mb-2 font-mono text-[10px] uppercase tracking-widest2 text-ink-400">
+          <div className="mb-2 font-mono text-ui-xs uppercase tracking-widest2 text-ink-400">
             registry · {skills.data?.length ?? 0}
           </div>
           <div className="flex-1 space-y-1 overflow-y-auto">
@@ -69,28 +69,28 @@ export function Skills() {
                 )}
               >
                 <div className="flex w-full items-center justify-between">
-                  <span className="font-serif text-[13px] text-ink-50">{s.name}</span>
+                  <span className="font-serif text-ui-lg text-ink-50">{s.name}</span>
                   <span
                     className={cn(
-                      'font-mono text-[9px] uppercase tracking-widest2',
+                      'font-mono text-ui-2xs uppercase tracking-widest2',
                       s.enabled ? 'text-emerald-400' : 'text-ink-500',
                     )}
                   >
                     {s.enabled ? 'on' : 'off'}
                   </span>
                 </div>
-                <div className="mt-0.5 line-clamp-2 font-mono text-[10px] text-ink-400">
+                <div className="mt-0.5 line-clamp-2 font-mono text-ui-xs text-ink-400">
                   {s.description}
                 </div>
                 {s.builtin && (
-                  <span className="mt-1 font-mono text-[9px] uppercase tracking-widest2 text-ink-500">
+                  <span className="mt-1 font-mono text-ui-2xs uppercase tracking-widest2 text-ink-500">
                     builtin
                   </span>
                 )}
               </button>
             ))}
             {skills.data?.length === 0 && (
-              <div className="font-mono text-[11px] text-ink-500">
+              <div className="font-mono text-ui-sm text-ink-500">
                 no skills found — create one or add a folder under userData/skills
               </div>
             )}
@@ -102,11 +102,11 @@ export function Skills() {
             <div>
               <div className="mb-4 flex items-start justify-between gap-4">
                 <div>
-                  <div className="font-mono text-[10px] uppercase tracking-widest2 text-amber">
+                  <div className="font-mono text-ui-xs uppercase tracking-widest2 text-amber">
                     skill
                   </div>
                   <div className="mt-1 font-serif text-2xl text-ink-50">{focused.name}</div>
-                  <div className="mt-1 font-mono text-[11px] text-ink-300">
+                  <div className="mt-1 font-mono text-ui-sm text-ink-300">
                     {focused.description}
                   </div>
                 </div>
@@ -120,13 +120,13 @@ export function Skills() {
                       }
                       className="h-3.5 w-3.5 accent-amber-500"
                     />
-                    <span className="font-mono text-[10px] uppercase tracking-widest2 text-ink-200">
+                    <span className="font-mono text-ui-xs uppercase tracking-widest2 text-ink-200">
                       enabled
                     </span>
                   </label>
                   <button
                     onClick={() => reveal.mutate({ name: focused.name })}
-                    className="rounded border border-ink-700 px-3 py-1.5 font-mono text-[10px] uppercase tracking-widest2 text-ink-200 hover:border-amber-500 hover:text-amber-400"
+                    className="rounded border border-ink-700 px-3 py-1.5 font-mono text-ui-xs uppercase tracking-widest2 text-ink-200 hover:border-amber-500 hover:text-amber-400"
                   >
                     open folder
                   </button>
@@ -137,7 +137,7 @@ export function Skills() {
                           remove.mutate({ name: focused.name });
                         }
                       }}
-                      className="rounded border border-rose-800/60 px-3 py-1.5 font-mono text-[10px] uppercase tracking-widest2 text-rose-300 hover:bg-rose-950/40"
+                      className="rounded border border-rose-800/60 px-3 py-1.5 font-mono text-ui-xs uppercase tracking-widest2 text-rose-300 hover:bg-rose-950/40"
                     >
                       delete
                     </button>
@@ -155,15 +155,15 @@ export function Skills() {
                 />
               </div>
 
-              <div className="mb-2 font-mono text-[10px] uppercase tracking-widest2 text-ink-400">
+              <div className="mb-2 font-mono text-ui-xs uppercase tracking-widest2 text-ink-400">
                 body
               </div>
-              <pre className="max-h-[60vh] overflow-y-auto rounded border border-ink-800 bg-ink-950 p-4 font-mono text-[11px] leading-relaxed text-ink-100">
+              <pre className="max-h-[60vh] overflow-y-auto rounded border border-ink-800 bg-ink-950 p-4 font-mono text-ui-sm leading-relaxed text-ink-100">
 {focused.body}
               </pre>
             </div>
           ) : (
-            <div className="flex h-full items-center justify-center font-mono text-[11px] text-ink-500">
+            <div className="flex h-full items-center justify-center font-mono text-ui-sm text-ink-500">
               select a skill
             </div>
           )}
@@ -178,8 +178,8 @@ export function Skills() {
 function Field({ label, value, mono }: { label: string; value: string; mono?: boolean }) {
   return (
     <div className="rounded border border-ink-800 bg-ink-950 p-3">
-      <div className="font-mono text-[10px] uppercase tracking-widest2 text-ink-400">{label}</div>
-      <div className={cn('mt-1 break-all', mono ? 'font-mono text-[11px]' : 'font-serif text-[13px]', 'text-ink-100')}>
+      <div className="font-mono text-ui-xs uppercase tracking-widest2 text-ink-400">{label}</div>
+      <div className={cn('mt-1 break-all', mono ? 'font-mono text-ui-sm' : 'font-serif text-ui-lg', 'text-ink-100')}>
         {value}
       </div>
     </div>
@@ -205,7 +205,7 @@ function NewSkillModal({ onClose }: { onClose: () => void }) {
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
       <div className="w-[520px] max-w-[90vw] rounded border border-amber-700/60 bg-ink-950 shadow-2xl">
         <div className="border-b border-ink-800 px-4 py-3">
-          <div className="font-mono text-[10px] uppercase tracking-widest2 text-amber-400">
+          <div className="font-mono text-ui-xs uppercase tracking-widest2 text-amber-400">
             new skill
           </div>
         </div>
@@ -248,20 +248,20 @@ function NewSkillModal({ onClose }: { onClose: () => void }) {
             mono
           />
           {create.error && (
-            <div className="font-mono text-[11px] text-rose-400">{create.error.message}</div>
+            <div className="font-mono text-ui-sm text-rose-400">{create.error.message}</div>
           )}
           <div className="flex items-center justify-end gap-2 pt-2">
             <button
               type="button"
               onClick={onClose}
-              className="rounded border border-ink-700 px-3 py-1 font-mono text-[11px] uppercase tracking-widest2 text-ink-200 hover:bg-ink-900"
+              className="rounded border border-ink-700 px-3 py-1 font-mono text-ui-sm uppercase tracking-widest2 text-ink-200 hover:bg-ink-900"
             >
               cancel
             </button>
             <button
               type="submit"
               disabled={!id || !name || !description || create.isPending}
-              className="rounded border border-amber-700/60 bg-amber-950/30 px-3 py-1 font-mono text-[11px] uppercase tracking-widest2 text-amber-300 hover:bg-amber-950/60 disabled:opacity-40"
+              className="rounded border border-amber-700/60 bg-amber-950/30 px-3 py-1 font-mono text-ui-sm uppercase tracking-widest2 text-amber-300 hover:bg-amber-950/60 disabled:opacity-40"
             >
               {create.isPending ? 'creating…' : 'create'}
             </button>
@@ -287,7 +287,7 @@ function Input({
 }) {
   return (
     <label className="block">
-      <div className="mb-1 font-mono text-[10px] uppercase tracking-widest2 text-ink-400">
+      <div className="mb-1 font-mono text-ui-xs uppercase tracking-widest2 text-ink-400">
         {label}
       </div>
       <input
@@ -297,7 +297,7 @@ function Input({
         placeholder={placeholder}
         className={cn(
           'w-full rounded border border-ink-700 bg-ink-950 px-3 py-1.5 text-ink-100 placeholder:text-ink-600 focus:border-amber-700/60 focus:outline-none',
-          mono ? 'font-mono text-[12px]' : 'font-serif text-[13px]',
+          mono ? 'font-mono text-ui-base' : 'font-serif text-ui-lg',
         )}
       />
     </label>

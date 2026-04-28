@@ -48,7 +48,7 @@ export function KanbanCardView({ card, isDragging, isOverlay, onClick, onResetLa
     >
       {/* Header */}
       <div className="flex items-start justify-between gap-2">
-        <h3 className="min-w-0 truncate font-serif text-[13px] leading-snug text-ink-50">
+        <h3 className="min-w-0 truncate font-serif text-ui-lg leading-snug text-ink-50">
           {card.title}
         </h3>
         {card.manualLane && onResetLane && (
@@ -57,7 +57,7 @@ export function KanbanCardView({ card, isDragging, isOverlay, onClick, onResetLa
               e.stopPropagation();
               onResetLane();
             }}
-            className="invisible shrink-0 font-mono text-[9px] uppercase tracking-widest2 text-ink-500 hover:text-amber group-hover:visible"
+            className="invisible shrink-0 font-mono text-ui-2xs uppercase tracking-widest2 text-ink-500 hover:text-amber group-hover:visible"
             title="Reset to auto lane"
           >
             reset
@@ -66,7 +66,7 @@ export function KanbanCardView({ card, isDragging, isOverlay, onClick, onResetLa
       </div>
 
       {/* Task summary chips */}
-      <div className="mt-1.5 flex flex-wrap items-center gap-1.5 font-mono text-[10px]">
+      <div className="mt-1.5 flex flex-wrap items-center gap-1.5 font-mono text-ui-xs">
         {total === 0 ? (
           <span className="text-ink-500">no tasks</span>
         ) : (
@@ -91,7 +91,7 @@ export function KanbanCardView({ card, isDragging, isOverlay, onClick, onResetLa
       </div>
 
       {/* Timestamp */}
-      <div className="mt-2 font-mono text-[9px] tracking-wide text-ink-500">
+      <div className="mt-2 font-mono text-ui-2xs tracking-wide text-ink-500">
         {relativeTime(card.lastActivity)}
       </div>
 

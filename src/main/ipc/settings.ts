@@ -5,6 +5,7 @@ import { logsDir } from '../util/paths.js';
 import { getSetting, setSetting, SETTING_KEYS } from '../services/settings.js';
 
 const themeSchema = z.enum(['dark', 'light']);
+const textSizeSchema = z.enum(['compact', 'default', 'comfortable']);
 
 export const settingsRouter = router({
   theme: publicProcedure.query(async () => {
@@ -16,6 +17,18 @@ export const settingsRouter = router({
     .input(z.object({ value: themeSchema }))
     .mutation(async ({ input }) => {
       await setSetting(SETTING_KEYS.UI_THEME, input.value);
+      return { ok: true as const };
+    }),
+
+  textSize: publicProcedure.query(async () => {
+    const saved = await getSetting(SETTING_KEYS.UI_TEXT_SIZE);
+    return textSizeSchema.catch('compact').parse(saved ?? 'compact');
+  }),
+
+  setTextSize: publicProcedure
+    .input(z.object({ value: textSizeSchema }))
+    .mutation(async ({ input }) => {
+      await setSetting(SETTING_KEYS.UI_TEXT_SIZE, input.value);
       return { ok: true as const };
     }),
 

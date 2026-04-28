@@ -20,7 +20,7 @@ export function Sidebar() {
     <aside className="relative flex w-60 shrink-0 flex-col border-r border-ink-800 bg-ink-950">
       <div className="px-5 pb-4 pt-6">
         <div className="font-serif text-2xl leading-none text-amber">[ASE]</div>
-        <p className="mt-3 max-w-[180px] font-mono text-[10px] uppercase leading-relaxed tracking-widest2 text-ink-400">
+        <p className="mt-3 max-w-[180px] font-mono text-ui-xs uppercase leading-relaxed tracking-widest2 text-ink-400">
           plan · write · run · test · <span className="text-ink-200">iterate</span>
         </p>
       </div>
@@ -34,7 +34,7 @@ export function Sidebar() {
             to={item.to}
             className={({ isActive }) =>
               cn(
-                'group flex items-center justify-between rounded-sm px-2 py-1.5 font-mono text-[12px] tracking-wide transition-colors',
+                'group flex items-center justify-between rounded-sm px-2 py-1.5 font-mono text-ui-base tracking-wide transition-colors',
                 isActive
                   ? 'bg-ink-800/80 text-ink-50'
                   : 'text-ink-300 hover:bg-ink-900 hover:text-ink-100',
@@ -44,12 +44,12 @@ export function Sidebar() {
             {({ isActive }) => (
               <>
                 <span className="flex items-center gap-2">
-                  <span className={cn('text-[10px]', isActive ? 'text-amber' : 'text-ink-500')}>
+                  <span className={cn('text-ui-xs', isActive ? 'text-amber' : 'text-ink-500')}>
                     {isActive ? '▸' : '·'}
                   </span>
                   <span>/{item.label}</span>
                 </span>
-                <span className="text-[10px] text-ink-500">{item.hint}</span>
+                <span className="text-ui-xs text-ink-500">{item.hint}</span>
               </>
             )}
           </NavLink>
@@ -58,8 +58,8 @@ export function Sidebar() {
 
       <div className="mt-auto px-5 pb-5">
         <div className="hair mb-4 h-px" />
-        <div className="font-mono text-[10px] uppercase tracking-widest2 text-ink-500">ipc</div>
-        <div className="mt-1 font-mono text-[11px] text-ink-300">
+        <div className="font-mono text-ui-xs uppercase tracking-widest2 text-ink-500">ipc</div>
+        <div className="mt-1 font-mono text-ui-sm text-ink-300">
           {ping.isLoading ? '…' : ping.data ? `${ping.data.pong} · ok` : 'offline'}
         </div>
       </div>

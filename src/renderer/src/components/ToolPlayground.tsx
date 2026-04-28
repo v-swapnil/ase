@@ -116,7 +116,7 @@ export function ToolPlayground() {
   return (
     <div className="grid grid-cols-[200px_1fr] gap-6">
       <aside>
-        <div className="mb-2 font-mono text-[10px] uppercase tracking-widest2 text-ink-400">
+        <div className="mb-2 font-mono text-ui-xs uppercase tracking-widest2 text-ink-400">
           tool
         </div>
         <div className="flex flex-col rounded border border-ink-800 bg-ink-900/40">
@@ -132,7 +132,7 @@ export function ToolPlayground() {
                 setDuration(null);
               }}
               className={cn(
-                'border-b border-ink-800/60 px-3 py-2 text-left font-mono text-[12px] last:border-b-0',
+                'border-b border-ink-800/60 px-3 py-2 text-left font-mono text-ui-base last:border-b-0',
                 tool === t ? 'bg-ink-800 text-amber' : 'text-ink-300 hover:bg-ink-800/40',
               )}
             >
@@ -145,10 +145,10 @@ export function ToolPlayground() {
       <section className="space-y-4">
         <div>
           <div className="mb-2 flex items-center justify-between">
-            <div className="font-mono text-[10px] uppercase tracking-widest2 text-ink-400">
+            <div className="font-mono text-ui-xs uppercase tracking-widest2 text-ink-400">
               args (json)
             </div>
-            <div className="font-mono text-[10px] text-ink-500">
+            <div className="font-mono text-ui-xs text-ink-500">
               workspace · <span className="text-amber">{workspaceId ?? 'none'}</span>
             </div>
           </div>
@@ -157,33 +157,33 @@ export function ToolPlayground() {
             onChange={(e) => setArgs(e.target.value)}
             spellCheck={false}
             rows={8}
-            className="w-full resize-y rounded border border-ink-700 bg-ink-950 p-3 font-mono text-[12px] text-ink-100 focus:border-amber focus:outline-none"
+            className="w-full resize-y rounded border border-ink-700 bg-ink-950 p-3 font-mono text-ui-base text-ink-100 focus:border-amber focus:outline-none"
           />
           <div className="mt-3 flex items-center gap-3">
             <button
               onClick={run}
               disabled={running || !workspaceId}
-              className="rounded border border-amber bg-amber/10 px-4 py-1.5 font-mono text-[11px] uppercase tracking-widest2 text-amber hover:bg-amber/20 disabled:cursor-not-allowed disabled:opacity-40"
+              className="rounded border border-amber bg-amber/10 px-4 py-1.5 font-mono text-ui-sm uppercase tracking-widest2 text-amber hover:bg-amber/20 disabled:cursor-not-allowed disabled:opacity-40"
             >
               {running ? 'running…' : 'invoke →'}
             </button>
             {duration !== null && (
-              <span className="font-mono text-[10px] uppercase tracking-widest2 text-ink-500">
+              <span className="font-mono text-ui-xs uppercase tracking-widest2 text-ink-500">
                 {duration}ms
               </span>
             )}
             {error && (
-              <span className="font-mono text-[11px] text-signal-err">{error}</span>
+              <span className="font-mono text-ui-sm text-signal-err">{error}</span>
             )}
           </div>
         </div>
 
         {isStreaming && (
           <div>
-            <div className="mb-2 font-mono text-[10px] uppercase tracking-widest2 text-ink-400">
+            <div className="mb-2 font-mono text-ui-xs uppercase tracking-widest2 text-ink-400">
               live log
             </div>
-            <div className="h-48 overflow-auto rounded border border-ink-800 bg-ink-950 p-3 font-mono text-[11px] leading-relaxed">
+            <div className="h-48 overflow-auto rounded border border-ink-800 bg-ink-950 p-3 font-mono text-ui-sm leading-relaxed">
               {logs.length === 0 && (
                 <div className="text-ink-500">// no output yet</div>
               )}
@@ -200,10 +200,10 @@ export function ToolPlayground() {
         )}
 
         <div>
-          <div className="mb-2 font-mono text-[10px] uppercase tracking-widest2 text-ink-400">
+          <div className="mb-2 font-mono text-ui-xs uppercase tracking-widest2 text-ink-400">
             result
           </div>
-          <pre className="h-64 overflow-auto rounded border border-ink-800 bg-ink-950 p-3 font-mono text-[11px] leading-relaxed text-ink-100">
+          <pre className="h-64 overflow-auto rounded border border-ink-800 bg-ink-950 p-3 font-mono text-ui-sm leading-relaxed text-ink-100">
             {resultPretty || (running ? '…' : '// no result yet')}
           </pre>
         </div>

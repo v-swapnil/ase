@@ -47,11 +47,11 @@ export function Sessions() {
     <div className="grid h-full grid-cols-[260px_1fr] gap-6 p-6">
       <aside className="flex flex-col">
         <div className="mb-3 flex items-center justify-between">
-          <div className="font-mono text-[10px] uppercase tracking-widest2 text-ink-400">
+          <div className="font-mono text-ui-xs uppercase tracking-widest2 text-ink-400">
             sessions
           </div>
           <button
-            className="rounded border border-ink-700 px-2 py-0.5 font-mono text-[10px] uppercase tracking-widest2 text-ink-200 hover:border-amber-500 hover:text-amber-400 disabled:opacity-40"
+            className="rounded border border-ink-700 px-2 py-0.5 font-mono text-ui-xs uppercase tracking-widest2 text-ink-200 hover:border-amber-500 hover:text-amber-400 disabled:opacity-40"
             disabled={!workspaceId || create.isPending}
             onClick={() =>
               create.mutate({
@@ -65,7 +65,7 @@ export function Sessions() {
         </div>
 
         {!workspaceId && (
-          <div className="font-mono text-[11px] text-ink-500">no active workspace</div>
+          <div className="font-mono text-ui-sm text-ink-500">no active workspace</div>
         )}
 
         <div className="flex-1 space-y-1 overflow-y-auto">
@@ -81,13 +81,13 @@ export function Sessions() {
               )}
             >
               <div className="min-w-0">
-                <div className="truncate font-serif text-[13px] text-ink-50">{s.title}</div>
-                <div className="mt-0.5 font-mono text-[10px] text-ink-500">
+                <div className="truncate font-serif text-ui-lg text-ink-50">{s.title}</div>
+                <div className="mt-0.5 font-mono text-ui-xs text-ink-500">
                   {new Date(s.updatedAt).toLocaleString()}
                 </div>
               </div>
               <span
-                className="invisible ml-2 cursor-pointer font-mono text-[10px] text-ink-500 hover:text-rose-400 group-hover:visible"
+                className="invisible ml-2 cursor-pointer font-mono text-ui-xs text-ink-500 hover:text-rose-400 group-hover:visible"
                 onClick={(e) => {
                   e.stopPropagation();
                   if (confirm(`Delete session "${s.title}"?`)) del.mutate({ id: s.id });
@@ -98,7 +98,7 @@ export function Sessions() {
             </button>
           ))}
           {sessionsQ.data?.length === 0 && (
-            <div className="font-mono text-[11px] text-ink-500">no sessions yet</div>
+            <div className="font-mono text-ui-sm text-ink-500">no sessions yet</div>
           )}
         </div>
       </aside>
@@ -107,7 +107,7 @@ export function Sessions() {
         {sessionId ? (
           <SessionDetail sessionId={sessionId} key={sessionId} />
         ) : (
-          <div className="flex h-full items-center justify-center font-mono text-[11px] text-ink-500">
+          <div className="flex h-full items-center justify-center font-mono text-ui-sm text-ink-500">
             select or create a session
           </div>
         )}
@@ -138,14 +138,14 @@ function SessionDetail({ sessionId }: { sessionId: string }) {
     <div className="flex h-full min-h-0 flex-col">
       <header className="mb-3 border-b border-ink-800 pb-3">
         <div className="font-serif text-2xl text-ink-50">{session.data?.title ?? '…'}</div>
-        <div className="mt-1 font-mono text-[10px] uppercase tracking-widest2 text-ink-500">
+        <div className="mt-1 font-mono text-ui-xs uppercase tracking-widest2 text-ink-500">
           {session.data?.id} · {tasks.data?.length ?? 0} tasks
         </div>
       </header>
 
       <div className="grid min-h-0 flex-1 grid-cols-[180px_1fr] gap-4 overflow-hidden">
         <aside className="flex min-h-0 flex-col">
-          <div className="mb-2 font-mono text-[10px] uppercase tracking-widest2 text-ink-400">
+          <div className="mb-2 font-mono text-ui-xs uppercase tracking-widest2 text-ink-400">
             tasks
           </div>
           <div className="flex-1 space-y-1 overflow-y-auto">
@@ -161,18 +161,18 @@ function SessionDetail({ sessionId }: { sessionId: string }) {
                 )}
               >
                 <div className="flex items-center justify-between">
-                  <span className="font-mono text-[10px] text-ink-500">
+                  <span className="font-mono text-ui-xs text-ink-500">
                     #{tasks.data!.length - i}
                   </span>
                   <StatusPill status={t.status} compact />
                 </div>
-                <div className="mt-1 line-clamp-2 font-serif text-[11px] text-ink-100">
+                <div className="mt-1 line-clamp-2 font-serif text-ui-sm text-ink-100">
                   {t.prompt}
                 </div>
               </button>
             ))}
             {tasks.data?.length === 0 && (
-              <div className="font-mono text-[11px] text-ink-500">no tasks yet</div>
+              <div className="font-mono text-ui-sm text-ink-500">no tasks yet</div>
             )}
           </div>
         </aside>
@@ -181,7 +181,7 @@ function SessionDetail({ sessionId }: { sessionId: string }) {
           {focusedTaskId ? (
             <TaskView taskId={focusedTaskId} key={focusedTaskId} />
           ) : (
-            <div className="flex h-full items-center justify-center font-mono text-[11px] text-ink-500">
+            <div className="flex h-full items-center justify-center font-mono text-ui-sm text-ink-500">
               submit a prompt to begin
             </div>
           )}
@@ -201,7 +201,7 @@ function SessionDetail({ sessionId }: { sessionId: string }) {
           onChange={(e) => setPrompt(e.target.value)}
           placeholder="describe the task… (⌘↩ to submit)"
           rows={3}
-          className="w-full resize-none rounded border border-ink-700 bg-ink-950 px-3 py-2 font-mono text-[12px] text-ink-100 placeholder:text-ink-600 focus:border-amber-700/60 focus:outline-none"
+          className="w-full resize-none rounded border border-ink-700 bg-ink-950 px-3 py-2 font-mono text-ui-base text-ink-100 placeholder:text-ink-600 focus:border-amber-700/60 focus:outline-none"
           onKeyDown={(e) => {
             if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
               e.preventDefault();
@@ -210,13 +210,13 @@ function SessionDetail({ sessionId }: { sessionId: string }) {
           }}
         />
         <div className="mt-2 flex items-center justify-between">
-          <span className="font-mono text-[10px] uppercase tracking-widest2 text-ink-500">
+          <span className="font-mono text-ui-xs uppercase tracking-widest2 text-ink-500">
             planner → executor → tester → critic
           </span>
           <button
             type="submit"
             disabled={!prompt.trim() || create.isPending}
-            className="rounded border border-amber-700/60 bg-amber-950/30 px-4 py-1.5 font-mono text-[11px] uppercase tracking-widest2 text-amber-300 hover:bg-amber-950/60 disabled:opacity-40"
+            className="rounded border border-amber-700/60 bg-amber-950/30 px-4 py-1.5 font-mono text-ui-sm uppercase tracking-widest2 text-amber-300 hover:bg-amber-950/60 disabled:opacity-40"
           >
             {create.isPending ? 'submitting…' : 'submit task'}
           </button>
@@ -307,7 +307,7 @@ function TaskView({ taskId }: { taskId: string }) {
     <div className="grid h-full min-h-0 grid-cols-[1fr_320px] gap-4 overflow-hidden">
       <div className="flex min-h-0 min-w-0 flex-col">
         <div className="mb-2 flex items-center justify-between">
-          <div className="font-mono text-[10px] uppercase tracking-widest2 text-ink-400">
+          <div className="font-mono text-ui-xs uppercase tracking-widest2 text-ink-400">
             event stream
           </div>
           <div className="flex items-center gap-2">
@@ -315,7 +315,7 @@ function TaskView({ taskId }: { taskId: string }) {
             {running && (
               <button
                 onClick={() => cancel.mutate({ id: taskId })}
-                className="rounded border border-rose-800/60 px-2 py-0.5 font-mono text-[10px] uppercase tracking-widest2 text-rose-300 hover:bg-rose-950/40"
+                className="rounded border border-rose-800/60 px-2 py-0.5 font-mono text-ui-xs uppercase tracking-widest2 text-rose-300 hover:bg-rose-950/40"
               >
                 cancel
               </button>
@@ -325,14 +325,14 @@ function TaskView({ taskId }: { taskId: string }) {
                 <button
                   onClick={() => exportReport.mutate({ id: taskId })}
                   disabled={exportReport.isPending}
-                  className="rounded border border-ink-700 px-2 py-0.5 font-mono text-[10px] uppercase tracking-widest2 text-ink-200 hover:border-ink-600 disabled:opacity-40"
+                  className="rounded border border-ink-700 px-2 py-0.5 font-mono text-ui-xs uppercase tracking-widest2 text-ink-200 hover:border-ink-600 disabled:opacity-40"
                 >
                   {exportReport.isPending ? 'exporting…' : 'export report'}
                 </button>
                 <button
                   onClick={() => retry.mutate({ id: taskId })}
                   disabled={retry.isPending}
-                  className="rounded border border-amber-700/60 px-2 py-0.5 font-mono text-[10px] uppercase tracking-widest2 text-amber-300 hover:bg-amber-950/40 disabled:opacity-40"
+                  className="rounded border border-amber-700/60 px-2 py-0.5 font-mono text-ui-xs uppercase tracking-widest2 text-amber-300 hover:bg-amber-950/40 disabled:opacity-40"
                 >
                   retry
                 </button>
@@ -342,7 +342,7 @@ function TaskView({ taskId }: { taskId: string }) {
         </div>
         <div
           ref={logRef}
-          className="flex-1 overflow-y-auto rounded border border-ink-800 bg-ink-950 p-3 font-mono text-[11px] leading-snug"
+          className="flex-1 overflow-y-auto rounded border border-ink-800 bg-ink-950 p-3 font-mono text-ui-sm leading-snug"
         >
           {events.length === 0 && (
             <div className="text-ink-500">waiting for events…</div>
@@ -357,20 +357,20 @@ function TaskView({ taskId }: { taskId: string }) {
         <Panel title="plan">
           {plan ? (
             <div>
-              <div className="mb-2 font-serif text-[13px] italic text-ink-200">{plan.summary}</div>
+              <div className="mb-2 font-serif text-ui-lg italic text-ink-200">{plan.summary}</div>
               {plan.selectedSkills && plan.selectedSkills.length > 0 && (
                 <div className="mb-2 flex flex-wrap gap-1">
                   {plan.selectedSkills.map((s) => (
                     <span
                       key={s}
-                      className="rounded border border-amber-700/60 bg-amber-950/20 px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-widest2 text-amber-300"
+                      className="rounded border border-amber-700/60 bg-amber-950/20 px-1.5 py-0.5 font-mono text-ui-2xs uppercase tracking-widest2 text-amber-300"
                     >
                       {s}
                     </span>
                   ))}
                 </div>
               )}
-              <ol className="space-y-1 font-mono text-[11px]">
+              <ol className="space-y-1 font-mono text-ui-sm">
                 {plan.steps.map((s, i) => (
                   <li key={s.id} className="text-ink-200">
                     <span className="text-ink-500">{i + 1}.</span> {s.goal}
@@ -379,12 +379,12 @@ function TaskView({ taskId }: { taskId: string }) {
               </ol>
             </div>
           ) : (
-            <div className="font-mono text-[11px] text-ink-500">awaiting plan…</div>
+            <div className="font-mono text-ui-sm text-ink-500">awaiting plan…</div>
           )}
         </Panel>
         <Panel title="verdict">
           {verdict ? (
-            <div className="space-y-1 font-mono text-[11px]">
+            <div className="space-y-1 font-mono text-ui-sm">
               <div className={verdict.done ? 'text-emerald-400' : 'text-amber-400'}>
                 {verdict.done ? '✔ done' : '↻ continue'}
               </div>
@@ -395,7 +395,7 @@ function TaskView({ taskId }: { taskId: string }) {
               )}
             </div>
           ) : (
-            <div className="font-mono text-[11px] text-ink-500">no verdict yet</div>
+            <div className="font-mono text-ui-sm text-ink-500">no verdict yet</div>
           )}
         </Panel>
       </aside>
@@ -435,34 +435,34 @@ function ApprovalModal({
       <div className="w-[560px] max-w-[90vw] rounded border border-amber-700/60 bg-ink-950 shadow-2xl">
         <div className="flex items-center justify-between border-b border-ink-800 px-4 py-3">
           <div>
-            <div className="font-mono text-[10px] uppercase tracking-widest2 text-amber-400">
+            <div className="font-mono text-ui-xs uppercase tracking-widest2 text-amber-400">
               approval required{remaining > 0 ? ` · ${remaining} more queued` : ''}
             </div>
             <div className="font-serif text-lg text-ink-50">{req.tool}</div>
           </div>
-          <div className="font-mono text-[10px] text-ink-500">
+          <div className="font-mono text-ui-xs text-ink-500">
             {new Date(req.ts).toLocaleTimeString([], { hour12: false })}
           </div>
         </div>
-        <pre className="max-h-[40vh] overflow-y-auto px-4 py-3 font-mono text-[11px] leading-snug text-ink-100">
+        <pre className="max-h-[40vh] overflow-y-auto px-4 py-3 font-mono text-ui-sm leading-snug text-ink-100">
 {argsPretty}
         </pre>
         <div className="flex items-center justify-end gap-2 border-t border-ink-800 px-4 py-3">
           <button
             onClick={() => onDecide('deny')}
-            className="rounded border border-rose-800/60 px-3 py-1 font-mono text-[11px] uppercase tracking-widest2 text-rose-300 hover:bg-rose-950/40"
+            className="rounded border border-rose-800/60 px-3 py-1 font-mono text-ui-sm uppercase tracking-widest2 text-rose-300 hover:bg-rose-950/40"
           >
             deny
           </button>
           <button
             onClick={() => onDecide('approve_session')}
-            className="rounded border border-ink-700 px-3 py-1 font-mono text-[11px] uppercase tracking-widest2 text-ink-200 hover:bg-ink-900"
+            className="rounded border border-ink-700 px-3 py-1 font-mono text-ui-sm uppercase tracking-widest2 text-ink-200 hover:bg-ink-900"
           >
             allow this task
           </button>
           <button
             onClick={() => onDecide('approve')}
-            className="rounded border border-amber-700/60 bg-amber-950/30 px-3 py-1 font-mono text-[11px] uppercase tracking-widest2 text-amber-300 hover:bg-amber-950/60"
+            className="rounded border border-amber-700/60 bg-amber-950/30 px-3 py-1 font-mono text-ui-sm uppercase tracking-widest2 text-amber-300 hover:bg-amber-950/60"
           >
             approve once
           </button>
@@ -475,7 +475,7 @@ function ApprovalModal({
 function Panel({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="rounded border border-ink-800 bg-ink-900/40 p-3">
-      <div className="mb-2 font-mono text-[10px] uppercase tracking-widest2 text-ink-400">
+      <div className="mb-2 font-mono text-ui-xs uppercase tracking-widest2 text-ink-400">
         {title}
       </div>
       {children}
@@ -494,8 +494,8 @@ function StatusPill({ status, compact }: { status: string; compact?: boolean }) 
   return (
     <span
       className={cn(
-        'rounded border font-mono uppercase tracking-widest2',
-        compact ? 'px-1.5 py-0 text-[9px]' : 'px-2 py-0.5 text-[10px]',
+        'rounded border font-mono !text-ui-xs uppercase tracking-widest2',
+        compact ? 'px-1.5 py-0' : 'px-2 py-0.5',
         palette[status] ?? 'border-ink-700 text-ink-400',
       )}
     >
@@ -602,7 +602,7 @@ function DiffPanel({ touchedKey }: { touchedKey: number }) {
   if (!workspaceId) {
     return (
       <Panel title="git diff">
-        <div className="font-mono text-[11px] text-ink-500">no workspace</div>
+        <div className="font-mono text-ui-sm text-ink-500">no workspace</div>
       </Panel>
     );
   }
@@ -611,7 +611,7 @@ function DiffPanel({ touchedKey }: { touchedKey: number }) {
   if (!s?.isRepo) {
     return (
       <Panel title="git diff">
-        <div className="font-mono text-[11px] text-ink-500">
+        <div className="font-mono text-ui-sm text-ink-500">
           not a git repo — toggle <span className="text-ink-300">auto-branch per task</span>{' '}
           in Settings to initialise on next run.
         </div>
@@ -623,7 +623,7 @@ function DiffPanel({ touchedKey }: { touchedKey: number }) {
 
   return (
     <Panel title="git diff">
-      <div className="mb-2 flex items-center justify-between font-mono text-[10px] uppercase tracking-widest2">
+      <div className="mb-2 flex items-center justify-between font-mono text-ui-xs uppercase tracking-widest2">
         <span className="text-ink-300">
           branch: <span className="text-amber-300">{s.branch ?? '—'}</span>
         </span>
@@ -650,7 +650,7 @@ function DiffPanel({ touchedKey }: { touchedKey: number }) {
           />
         </div>
       ) : (
-        <div className="font-mono text-[11px] text-ink-500">working tree clean</div>
+        <div className="font-mono text-ui-sm text-ink-500">working tree clean</div>
       )}
     </Panel>
   );

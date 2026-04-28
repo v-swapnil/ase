@@ -97,7 +97,7 @@ export function KanbanBoard() {
 
   if (!workspaceId) {
     return (
-      <div className="flex h-full items-center justify-center font-mono text-[11px] text-ink-500">
+      <div className="flex h-full items-center justify-center font-mono text-ui-sm text-ink-500">
         select a workspace to view the board
       </div>
     );
@@ -110,15 +110,15 @@ export function KanbanBoard() {
       {/* Header */}
       <div className="flex shrink-0 items-center justify-between border-b border-ink-800 px-6 py-4">
         <div>
-          <h1 className="font-mono text-[10px] uppercase tracking-widest2 text-ink-400">
+          <h1 className="font-mono text-ui-xs uppercase tracking-widest2 text-ink-400">
             Kanban Board
           </h1>
-          <p className="mt-0.5 font-mono text-[10px] text-ink-500">
+          <p className="mt-0.5 font-mono text-ui-xs text-ink-500">
             {totalCards} session{totalCards !== 1 ? 's' : ''}
           </p>
         </div>
         <button
-          className="rounded border border-ink-700 px-3 py-1 font-mono text-[10px] uppercase tracking-widest2 text-ink-200 transition-colors hover:border-amber hover:text-amber disabled:opacity-40"
+          className="rounded border border-ink-700 px-3 py-1 font-mono text-ui-xs uppercase tracking-widest2 text-ink-200 transition-colors hover:border-amber hover:text-amber disabled:opacity-40"
           disabled={!workspaceId || create.isPending}
           onClick={() =>
             create.mutate({
@@ -161,7 +161,7 @@ export function KanbanBoard() {
       {/* Empty state */}
       {totalCards === 0 && !kanbanQ.isLoading && (
         <div className="absolute inset-0 flex flex-col items-center justify-center gap-3">
-          <div className="font-mono text-[11px] text-ink-500">
+          <div className="font-mono text-ui-sm text-ink-500">
             no sessions yet — create one to get started
           </div>
         </div>

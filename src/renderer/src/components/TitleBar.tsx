@@ -15,13 +15,13 @@ export function TitleBar() {
 
   return (
     <div className="app-drag relative z-30 flex h-10 items-center justify-between border-b border-ink-800 bg-ink-950/80 pl-20 pr-4 backdrop-blur">
-      <div className="flex items-center gap-3 font-mono text-[11px] uppercase tracking-widest2 text-ink-400">
+      <div className="flex items-center gap-3 font-mono text-ui-sm uppercase tracking-widest2 text-ink-400">
         <span className="text-amber">[ase]</span>
         <span className="text-ink-500">/</span>
         <span>autonomous software engineer</span>
         {version && <span className="text-ink-500">v{version}</span>}
       </div>
-      <div className="app-no-drag flex items-center gap-3 font-mono text-[10px] uppercase tracking-widest2">
+      <div className="app-no-drag flex items-center gap-3 font-mono text-ui-xs uppercase tracking-widest2">
         <ModelBadge />
         <button
           onClick={() => {

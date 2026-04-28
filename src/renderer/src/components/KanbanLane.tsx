@@ -76,13 +76,13 @@ export function KanbanLane({ lane, cards, onCardClick, onResetLane }: KanbanLane
         </span>
         <span
           className={cn(
-            'font-mono text-[10px] uppercase tracking-widest2',
+            'font-mono text-ui-xs uppercase tracking-widest2',
             meta.color,
           )}
         >
           {meta.label}
         </span>
-        <span className="rounded-full bg-ink-800 px-1.5 font-mono text-[10px] text-ink-300">
+        <span className="rounded-full bg-ink-800 px-1.5 font-mono text-ui-xs text-ink-300">
           {cards.length}
         </span>
       </div>
@@ -106,7 +106,7 @@ export function KanbanLane({ lane, cards, onCardClick, onResetLane }: KanbanLane
         </SortableContext>
 
         {cards.length === 0 && (
-          <div className="flex h-24 items-center justify-center rounded-md border border-dashed border-ink-800 font-mono text-[10px] text-ink-500">
+          <div className="flex h-24 items-center justify-center rounded-md border border-dashed border-ink-800 font-mono text-ui-xs text-ink-500">
             No sessions
           </div>
         )}

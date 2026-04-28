@@ -70,7 +70,7 @@ export function DebugChat() {
 
   return (
     <div className="flex h-[460px] flex-col overflow-hidden rounded border border-ink-800 bg-ink-900/40">
-      <div className="flex items-center justify-between border-b border-ink-800 px-4 py-2 font-mono text-[10px] uppercase tracking-widest2">
+      <div className="flex items-center justify-between border-b border-ink-800 px-4 py-2 font-mono text-ui-xs uppercase tracking-widest2">
         <span className="text-ink-400">debug chat</span>
         <span className="text-ink-500">
           model: <span className="text-amber">{active.data ?? '—'}</span>
@@ -79,7 +79,7 @@ export function DebugChat() {
 
       <div className="flex-1 space-y-3 overflow-y-auto px-4 py-3">
         {messages.length === 0 && !streaming.active && (
-          <div className="font-mono text-[11px] text-ink-500">
+          <div className="font-mono text-ui-sm text-ink-500">
             send a message to test the active model end-to-end.
           </div>
         )}
@@ -103,12 +103,12 @@ export function DebugChat() {
           }}
           rows={2}
           placeholder="ask the model… (⌘+enter)"
-          className="flex-1 resize-none rounded border border-ink-700 bg-ink-950 px-3 py-2 font-mono text-[12px] text-ink-100 placeholder:text-ink-500 focus:border-amber focus:outline-none"
+          className="flex-1 resize-none rounded border border-ink-700 bg-ink-950 px-3 py-2 font-mono text-ui-base text-ink-100 placeholder:text-ink-500 focus:border-amber focus:outline-none"
         />
         <button
           onClick={send}
           disabled={streaming.active || !draft.trim()}
-          className="rounded border border-amber bg-amber/10 px-4 py-2 font-mono text-[11px] uppercase tracking-widest2 text-amber hover:bg-amber/20 disabled:cursor-not-allowed disabled:opacity-40"
+          className="rounded border border-amber bg-amber/10 px-4 py-2 font-mono text-ui-sm uppercase tracking-widest2 text-amber hover:bg-amber/20 disabled:cursor-not-allowed disabled:opacity-40"
         >
           send
         </button>
@@ -122,13 +122,13 @@ function Bubble({ msg, streaming }: { msg: Msg; streaming?: boolean }) {
   return (
     <div className={`flex ${isUser ? 'justify-end' : 'justify-start'}`}>
       <div
-        className={`max-w-[85%] whitespace-pre-wrap rounded px-3 py-2 text-[13px] leading-relaxed ${
+        className={`max-w-[85%] whitespace-pre-wrap rounded px-3 py-2 text-ui-lg leading-relaxed ${
           isUser
             ? 'border border-amber/30 bg-amber/5 text-ink-100'
             : 'border border-ink-800 bg-ink-900 text-ink-100'
         }`}
       >
-        <div className="mb-1 font-mono text-[9px] uppercase tracking-widest2 text-ink-500">
+        <div className="mb-1 font-mono text-ui-2xs uppercase tracking-widest2 text-ink-500">
           {isUser ? 'you' : 'assistant'}
           {streaming && <span className="ml-2 animate-pulse text-amber">streaming…</span>}
         </div>

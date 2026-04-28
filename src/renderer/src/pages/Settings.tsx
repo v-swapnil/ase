@@ -2,15 +2,20 @@ import { PageShell } from '../components/PageShell';
 import { ModelManager } from '../components/ModelManager';
 import { DebugChat } from '../components/DebugChat';
 import { trpc } from '../trpc';
-import { useUI } from '../store/ui';
+import { useUI, type TextSize } from '../store/ui';
 
 export function Settings() {
   const health = trpc.health.useQuery();
   const utils = trpc.useUtils();
   const theme = useUI((s) => s.theme);
   const setThemeLocal = useUI((s) => s.setTheme);
+  const textSize = useUI((s) => s.textSize);
+  const setTextSizeLocal = useUI((s) => s.setTextSize);
   const setTheme = trpc.settings.setTheme.useMutation({
     onSuccess: () => utils.settings.theme.invalidate(),
+  });
+  const setTextSize = trpc.settings.setTextSize.useMutation({
+    onSuccess: () => utils.settings.textSize.invalidate(),
   });
   const openLogs = trpc.settings.openLogsFolder.useMutation();
   const autoApprove = trpc.approval.autoApprove.useQuery();
@@ -37,7 +42,7 @@ export function Settings() {
             <SectionTitle index="02" title="Appearance" />
             <div className="flex items-center gap-2">
               <button
-                className={`rounded border px-3 py-1.5 font-mono text-[11px] uppercase tracking-widest2 ${theme === 'dark' ? 'border-amber-700/60 bg-amber-950/30 text-amber-300' : 'border-ink-700 text-ink-300 hover:border-ink-600'}`}
+                className={`rounded border px-3 py-1.5 font-mono text-ui-sm uppercase tracking-widest2 ${theme === 'dark' ? 'border-amber-700/60 bg-amber-950/30 text-amber-300' : 'border-ink-700 text-ink-300 hover:border-ink-600'}`}
                 onClick={() => {
                   setThemeLocal('dark');
                   setTheme.mutate({ value: 'dark' });
@@ -47,7 +52,7 @@ export function Settings() {
                 dark
               </button>
               <button
-                className={`rounded border px-3 py-1.5 font-mono text-[11px] uppercase tracking-widest2 ${theme === 'light' ? 'border-amber-700/60 bg-amber-950/30 text-amber-300' : 'border-ink-700 text-ink-300 hover:border-ink-600'}`}
+                className={`rounded border px-3 py-1.5 font-mono text-ui-sm uppercase tracking-widest2 ${theme === 'light' ? 'border-amber-700/60 bg-amber-950/30 text-amber-300' : 'border-ink-700 text-ink-300 hover:border-ink-600'}`}
                 onClick={() => {
                   setThemeLocal('light');
                   setTheme.mutate({ value: 'light' });
@@ -57,8 +62,27 @@ export function Settings() {
                 light
               </button>
             </div>
-            <div className="mt-2 font-mono text-[10px] uppercase tracking-widest2 text-ink-500">
+            <div className="mt-2 font-mono text-ui-xs uppercase tracking-widest2 text-ink-500">
               quick toggle: cmd/ctrl + shift + l
+            </div>
+
+            <div className="mt-5 font-mono text-ui-xs uppercase tracking-widest2 text-ink-400">
+              text size
+            </div>
+            <div className="mt-2 flex items-center gap-2">
+              {(['compact', 'default', 'comfortable'] as TextSize[]).map((size) => (
+                <button
+                  key={size}
+                  className={`rounded border px-3 py-1.5 font-mono text-ui-sm uppercase tracking-widest2 ${textSize === size ? 'border-amber-700/60 bg-amber-950/30 text-amber-300' : 'border-ink-700 text-ink-300 hover:border-ink-600'}`}
+                  onClick={() => {
+                    setTextSizeLocal(size);
+                    setTextSize.mutate({ value: size });
+                  }}
+                  disabled={setTextSize.isPending}
+                >
+                  {size}
+                </button>
+              ))}
             </div>
           </div>
 
@@ -95,7 +119,7 @@ export function Settings() {
               <button
                 onClick={() => openLogs.mutate()}
                 disabled={openLogs.isPending}
-                className="rounded border border-ink-700 px-3 py-1.5 font-mono text-[11px] uppercase tracking-widest2 text-ink-200 hover:border-ink-600 disabled:opacity-40"
+                className="rounded border border-ink-700 px-3 py-1.5 font-mono text-ui-sm uppercase tracking-widest2 text-ink-200 hover:border-ink-600 disabled:opacity-40"
               >
                 {openLogs.isPending ? 'opening…' : 'open logs folder'}
               </button>
@@ -112,7 +136,7 @@ export function Settings() {
                 ],
               ]}
             />
-            <div className="mt-3 rounded border border-ink-800 bg-ink-900/40 px-4 py-3 font-mono text-[10px] uppercase tracking-widest2 text-ink-400">
+            <div className="mt-3 rounded border border-ink-800 bg-ink-900/40 px-4 py-3 font-mono text-ui-xs uppercase tracking-widest2 text-ink-400">
               shortcuts: cmd/ctrl+1..7 navigate pages, cmd/ctrl+, opens settings
             </div>
           </div>
@@ -146,7 +170,7 @@ function ToggleCard({
       />
       <div>
         <div className="font-serif text-sm text-ink-50">{title}</div>
-        <div className="mt-1 font-mono text-[11px] text-ink-400">{description}</div>
+        <div className="mt-1 font-mono text-ui-sm text-ink-400">{description}</div>
       </div>
     </label>
   );
@@ -155,7 +179,7 @@ function ToggleCard({
 function SectionTitle({ index, title }: { index: string; title: string }) {
   return (
     <div className="mb-4 flex items-baseline gap-3">
-      <span className="font-mono text-[10px] uppercase tracking-widest2 text-amber">{index}</span>
+      <span className="font-mono text-ui-xs uppercase tracking-widest2 text-amber">{index}</span>
       <h2 className="font-serif text-2xl text-ink-50">{title}</h2>
     </div>
   );
@@ -169,8 +193,8 @@ function Rows({ rows }: { rows: [string, string][] }) {
           key={k}
           className={`grid grid-cols-[140px_1fr] gap-4 px-4 py-2.5 ${i ? 'border-t border-ink-800' : ''}`}
         >
-          <div className="font-mono text-[10px] uppercase tracking-widest2 text-ink-400">{k}</div>
-          <div className="truncate font-mono text-[11px] text-ink-100">{v}</div>
+          <div className="font-mono text-ui-xs uppercase tracking-widest2 text-ink-400">{k}</div>
+          <div className="truncate font-mono text-ui-sm text-ink-100">{v}</div>
         </div>
       ))}
     </div>

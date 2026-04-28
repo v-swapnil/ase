@@ -20,9 +20,15 @@ export function App() {
   const utils = trpc.useUtils();
   const theme = useUI((s) => s.theme);
   const setThemeLocal = useUI((s) => s.setTheme);
+  const textSize = useUI((s) => s.textSize);
+  const setTextSizeLocal = useUI((s) => s.setTextSize);
   const savedTheme = trpc.settings.theme.useQuery();
   const setTheme = trpc.settings.setTheme.useMutation({
     onSuccess: () => utils.settings.theme.invalidate(),
+  });
+  const savedTextSize = trpc.settings.textSize.useQuery();
+  const setTextSize = trpc.settings.setTextSize.useMutation({
+    onSuccess: () => utils.settings.textSize.invalidate(),
   });
 
   useEffect(() => {
@@ -31,8 +37,22 @@ export function App() {
   }, [savedTheme.data, setThemeLocal]);
 
   useEffect(() => {
+    if (!savedTextSize.data) return;
+    setTextSizeLocal(savedTextSize.data);
+  }, [savedTextSize.data, setTextSizeLocal]);
+
+  useEffect(() => {
     document.documentElement.dataset.theme = theme;
   }, [theme]);
+
+  useEffect(() => {
+    // 'compact' is the default (no attribute needed)
+    if (textSize === 'compact') {
+      delete document.documentElement.dataset.textSize;
+    } else {
+      document.documentElement.dataset.textSize = textSize;
+    }
+  }, [textSize]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {

@@ -22,6 +22,31 @@
   --signal-warn: 232 196 104;
 
   color-scheme: dark;
+
+  /* Text size scale — compact (default) */
+  --ui-text-2xs: 9px;
+  --ui-text-xs: 10px;
+  --ui-text-sm: 11px;
+  --ui-text-base: 12px;
+  --ui-text-lg: 13px;
+}
+
+/* Text size: default — slightly larger */
+html[data-text-size='default'] {
+  --ui-text-2xs: 10px;
+  --ui-text-xs: 11px;
+  --ui-text-sm: 12px;
+  --ui-text-base: 13px;
+  --ui-text-lg: 14px;
+}
+
+/* Text size: comfortable — largest */
+html[data-text-size='comfortable'] {
+  --ui-text-2xs: 11px;
+  --ui-text-xs: 12px;
+  --ui-text-sm: 13px;
+  --ui-text-base: 14px;
+  --ui-text-lg: 15px;
 }
 
 html[data-theme='light'] {

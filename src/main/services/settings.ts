@@ -27,6 +27,7 @@ export const SETTING_KEYS = {
   GIT_AUTO_BRANCH: 'gitAutoBranch',
   UI_THEME: 'uiTheme',
   QUEUE_CONCURRENCY: 'queueConcurrency',
+  UI_TEXT_SIZE: 'uiTextSize',
   KANBAN_AUTO_CLEAR: 'kanban.autoClearOverride',
   KANBAN_DEFAULT_VIEW: 'kanban.defaultView',
 } as const;

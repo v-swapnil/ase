@@ -34,7 +34,7 @@ export function WorkspaceSwitcher() {
     <div className="relative">
       <button
         onClick={() => setOpen((o) => !o)}
-        className="app-no-drag flex items-center gap-2 rounded border border-ink-800 bg-ink-900/60 px-2.5 py-1 font-mono text-[11px] uppercase tracking-widest2 text-ink-200 hover:border-ink-700"
+        className="app-no-drag flex items-center gap-2 rounded border border-ink-800 bg-ink-900/60 px-2.5 py-1 font-mono text-ui-sm uppercase tracking-widest2 text-ink-200 hover:border-ink-700"
       >
         <span className="text-ink-500">workspace</span>
         <span className="text-amber">·</span>
@@ -46,12 +46,12 @@ export function WorkspaceSwitcher() {
 
       {open && (
         <div className="app-no-drag absolute right-0 top-full z-50 mt-2 w-80 overflow-hidden rounded border border-ink-700 bg-ink-900 shadow-2xl">
-          <div className="border-b border-ink-800 px-4 py-2 font-mono text-[10px] uppercase tracking-widest2 text-ink-500">
+          <div className="border-b border-ink-800 px-4 py-2 font-mono text-ui-xs uppercase tracking-widest2 text-ink-500">
             workspaces
           </div>
           <div className="max-h-64 overflow-y-auto">
             {list.data?.length === 0 && (
-              <div className="px-4 py-3 text-[12px] text-ink-400">No workspaces yet.</div>
+              <div className="px-4 py-3 text-ui-base text-ink-400">No workspaces yet.</div>
             )}
             {list.data?.map((w) => (
               <button
@@ -66,12 +66,12 @@ export function WorkspaceSwitcher() {
                 )}
               >
                 <div className="flex items-center justify-between gap-2">
-                  <span className="text-[13px] text-ink-100">{w.name}</span>
-                  <span className="font-mono text-[9px] uppercase tracking-widest2 text-ink-500">
+                  <span className="text-ui-lg text-ink-100">{w.name}</span>
+                  <span className="font-mono text-ui-2xs uppercase tracking-widest2 text-ink-500">
                     {w.managed ? 'managed' : 'linked'}
                   </span>
                 </div>
-                <div className="truncate font-mono text-[10px] text-ink-500">{w.path}</div>
+                <div className="truncate font-mono text-ui-xs text-ink-500">{w.path}</div>
               </button>
             ))}
           </div>
@@ -81,14 +81,14 @@ export function WorkspaceSwitcher() {
                 setCreating((c) => !c);
                 setNewName('');
               }}
-              className="app-no-drag border-r border-ink-800 px-3 py-2 font-mono text-[11px] uppercase tracking-widest2 text-amber hover:bg-ink-800"
+              className="app-no-drag border-r border-ink-800 px-3 py-2 font-mono text-ui-sm uppercase tracking-widest2 text-amber hover:bg-ink-800"
             >
               + new
             </button>
             <button
               onClick={() => openExisting.mutate()}
               disabled={openExisting.isLoading}
-              className="app-no-drag px-3 py-2 font-mono text-[11px] uppercase tracking-widest2 text-ink-200 hover:bg-ink-800 disabled:opacity-50"
+              className="app-no-drag px-3 py-2 font-mono text-ui-sm uppercase tracking-widest2 text-ink-200 hover:bg-ink-800 disabled:opacity-50"
             >
               {openExisting.isLoading ? 'opening…' : 'open folder…'}
             </button>
@@ -108,24 +108,24 @@ export function WorkspaceSwitcher() {
                 value={newName}
                 onChange={(e) => setNewName(e.target.value)}
                 placeholder="workspace name"
-                className="app-no-drag flex-1 rounded border border-ink-700 bg-ink-950 px-2 py-1 font-mono text-[11px] text-ink-100 placeholder:text-ink-500 focus:border-amber focus:outline-none"
+                className="app-no-drag flex-1 rounded border border-ink-700 bg-ink-950 px-2 py-1 font-mono text-ui-sm text-ink-100 placeholder:text-ink-500 focus:border-amber focus:outline-none"
               />
               <button
                 type="submit"
                 disabled={!newName.trim() || create.isLoading}
-                className="app-no-drag rounded border border-amber bg-amber/10 px-2.5 py-1 font-mono text-[10px] uppercase tracking-widest2 text-amber hover:bg-amber/20 disabled:opacity-50"
+                className="app-no-drag rounded border border-amber bg-amber/10 px-2.5 py-1 font-mono text-ui-xs uppercase tracking-widest2 text-amber hover:bg-amber/20 disabled:opacity-50"
               >
                 {create.isLoading ? '…' : 'create'}
               </button>
             </form>
           )}
           {create.error && (
-            <div className="border-t border-ink-800 px-3 py-2 font-mono text-[10px] text-signal-err">
+            <div className="border-t border-ink-800 px-3 py-2 font-mono text-ui-xs text-signal-err">
               {create.error.message}
             </div>
           )}
           {openExisting.error && (
-            <div className="border-t border-ink-800 px-3 py-2 font-mono text-[10px] text-signal-err">
+            <div className="border-t border-ink-800 px-3 py-2 font-mono text-ui-xs text-signal-err">
               {openExisting.error.message}
             </div>
           )}

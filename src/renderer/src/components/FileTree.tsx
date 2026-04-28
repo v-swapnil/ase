@@ -13,7 +13,7 @@ interface Props {
 
 export function FileTree({ root, activePath, onOpen }: Props) {
   return (
-    <div className="select-none font-mono text-[12px] text-ink-200">
+    <div className="select-none font-mono text-ui-base text-ink-200">
       {root.children?.map((child) => (
         <Node key={child.path} node={child} depth={0} activePath={activePath} onOpen={onOpen} />
       ))}
@@ -59,7 +59,7 @@ function Node({
         style={indent}
         className="flex w-full items-center gap-1.5 py-[3px] text-left text-ink-300 hover:bg-ink-800/50"
       >
-        <span className="text-[9px] text-ink-500">{open ? '▾' : '▸'}</span>
+        <span className="text-ui-2xs text-ink-500">{open ? '▾' : '▸'}</span>
         <span className="truncate">{node.name}</span>
       </button>
       {open && node.children?.map((c) => (

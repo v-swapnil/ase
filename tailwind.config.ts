@@ -33,6 +33,13 @@ export default {
         sans: ['"IBM Plex Sans"', 'ui-sans-serif', 'system-ui', 'sans-serif'],
         serif: ['"IBM Plex Serif"', 'ui-serif', 'Georgia', 'serif'],
       },
+      fontSize: {
+        'ui-2xs': 'var(--ui-text-2xs)',
+        'ui-xs': 'var(--ui-text-xs)',
+        'ui-sm': 'var(--ui-text-sm)',
+        'ui-base': 'var(--ui-text-base)',
+        'ui-lg': 'var(--ui-text-lg)',
+      },
       letterSpacing: {
         widest2: '0.18em',
       },

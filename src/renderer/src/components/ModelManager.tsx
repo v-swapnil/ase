@@ -61,18 +61,18 @@ export function ModelManager() {
       <div className="rounded border border-ink-800 bg-ink-900/40 p-5">
         <div className="mb-3 flex items-center justify-between">
           <div>
-            <div className="font-mono text-[10px] uppercase tracking-widest2 text-ink-400">
+            <div className="font-mono text-ui-xs uppercase tracking-widest2 text-ink-400">
               provider
             </div>
             <div className="mt-1 font-serif text-lg text-ink-50">Ollama</div>
-            <div className="font-mono text-[10px] text-ink-500">
+            <div className="font-mono text-ui-xs text-ink-500">
               {health.data?.url ?? OLLAMA_URL}
             </div>
           </div>
           <Pill ok={health.isLoading ? undefined : ollamaOk} label={ollamaState} />
         </div>
         {!ollamaOk && !health.isLoading && (
-          <div className="rounded border border-ink-700 bg-ink-950 px-4 py-3 font-mono text-[11px] text-ink-300">
+          <div className="rounded border border-ink-700 bg-ink-950 px-4 py-3 font-mono text-ui-sm text-ink-300">
             <div className="mb-1 text-amber">Ollama not detected.</div>
             Install from{' '}
             <span className="text-ink-100">ollama.com/download</span>, then run{' '}
@@ -95,17 +95,17 @@ export function ModelManager() {
 
       <div className="rounded border border-ink-800 bg-ink-900/40">
         <div className="flex items-center justify-between border-b border-ink-800 px-5 py-3">
-          <div className="font-mono text-[10px] uppercase tracking-widest2 text-ink-400">
+          <div className="font-mono text-ui-xs uppercase tracking-widest2 text-ink-400">
             installed models
           </div>
-          <div className="font-mono text-[10px] text-ink-500">
+          <div className="font-mono text-ui-xs text-ink-500">
             active: <span className="text-amber">{active.data ?? '—'}</span>
           </div>
         </div>
         {!ollamaOk ? (
-          <div className="px-5 py-6 font-mono text-[11px] text-ink-500">—</div>
+          <div className="px-5 py-6 font-mono text-ui-sm text-ink-500">—</div>
         ) : models.data && models.data.length === 0 ? (
-          <div className="px-5 py-6 font-mono text-[11px] text-ink-500">
+          <div className="px-5 py-6 font-mono text-ui-sm text-ink-500">
             no models installed yet. pull one below.
           </div>
         ) : (
@@ -118,11 +118,11 @@ export function ModelManager() {
                   className="flex items-center justify-between border-b border-ink-800/60 px-5 py-2.5 last:border-b-0"
                 >
                   <div>
-                    <div className="font-mono text-[12px] text-ink-100">
+                    <div className="font-mono text-ui-base text-ink-100">
                       {m.name}
                       {isActive && <span className="ml-2 text-amber">●</span>}
                     </div>
-                    <div className="font-mono text-[10px] text-ink-500">
+                    <div className="font-mono text-ui-xs text-ink-500">
                       {m.sizeBytes ? formatBytes(m.sizeBytes) : ''}
                       {m.modifiedAt ? `  ·  ${new Date(m.modifiedAt).toLocaleDateString()}` : ''}
                     </div>
@@ -131,7 +131,7 @@ export function ModelManager() {
                     {!isActive && (
                       <button
                         onClick={() => setActive.mutate({ name: m.name })}
-                        className="rounded border border-ink-700 px-2 py-1 font-mono text-[10px] uppercase tracking-widest2 text-amber hover:border-amber"
+                        className="rounded border border-ink-700 px-2 py-1 font-mono text-ui-xs uppercase tracking-widest2 text-amber hover:border-amber"
                       >
                         use
                       </button>
@@ -140,7 +140,7 @@ export function ModelManager() {
                       onClick={() => {
                         if (window.confirm(`Delete ${m.name}?`)) del.mutate({ name: m.name });
                       }}
-                      className="rounded border border-ink-700 px-2 py-1 font-mono text-[10px] uppercase tracking-widest2 text-ink-400 hover:border-signal-err hover:text-signal-err"
+                      className="rounded border border-ink-700 px-2 py-1 font-mono text-ui-xs uppercase tracking-widest2 text-ink-400 hover:border-signal-err hover:text-signal-err"
                     >
                       remove
                     </button>
@@ -153,7 +153,7 @@ export function ModelManager() {
       </div>
 
       <div className="rounded border border-ink-800 bg-ink-900/40 p-5">
-        <div className="mb-3 font-mono text-[10px] uppercase tracking-widest2 text-ink-400">
+        <div className="mb-3 font-mono text-ui-xs uppercase tracking-widest2 text-ink-400">
           pull a model
         </div>
         <div className="flex gap-2">
@@ -161,7 +161,7 @@ export function ModelManager() {
             value={pullName}
             onChange={(e) => setPullName(e.target.value)}
             disabled={!ollamaOk || pullState?.status === 'starting' || (pullState?.status !== undefined && !pullState.done && pullState.status !== 'error')}
-            className="flex-1 rounded border border-ink-700 bg-ink-950 px-3 py-1.5 font-mono text-[12px] text-ink-100 placeholder:text-ink-500 focus:border-amber focus:outline-none disabled:opacity-50"
+            className="flex-1 rounded border border-ink-700 bg-ink-950 px-3 py-1.5 font-mono text-ui-base text-ink-100 placeholder:text-ink-500 focus:border-amber focus:outline-none disabled:opacity-50"
             placeholder="qwen2.5-coder:7b"
           />
           <button
@@ -171,14 +171,14 @@ export function ModelManager() {
               (pullState !== null && !pullState.done && pullState.status !== 'error')
             }
             onClick={() => setPullState({ status: 'starting' })}
-            className="rounded border border-amber bg-amber/10 px-4 py-1.5 font-mono text-[11px] uppercase tracking-widest2 text-amber hover:bg-amber/20 disabled:cursor-not-allowed disabled:opacity-50"
+            className="rounded border border-amber bg-amber/10 px-4 py-1.5 font-mono text-ui-sm uppercase tracking-widest2 text-amber hover:bg-amber/20 disabled:cursor-not-allowed disabled:opacity-50"
           >
             pull →
           </button>
         </div>
 
         {pullState && <PullProgressBar state={pullState} />}
-        <div className="mt-3 font-mono text-[10px] text-ink-500">
+        <div className="mt-3 font-mono text-ui-xs text-ink-500">
           tip: try{' '}
           <button onClick={() => setPullName('qwen2.5-coder:7b')} className="text-amber underline-offset-2 hover:underline">
             qwen2.5-coder:7b
@@ -208,7 +208,7 @@ function PullProgressBar({ state }: { state: PullState }) {
         : 'bg-amber';
   return (
     <div className="mt-4">
-      <div className="flex items-center justify-between font-mono text-[10px] uppercase tracking-widest2">
+      <div className="flex items-center justify-between font-mono text-ui-xs uppercase tracking-widest2">
         <span className={state.status === 'error' ? 'text-signal-err' : 'text-ink-300'}>
           {state.error ?? state.status}
         </span>
@@ -232,7 +232,7 @@ function Pill({ ok, label }: { ok?: boolean; label: string }) {
   const color =
     ok === undefined ? 'border-ink-700 text-ink-400' : ok ? 'border-signal-ok text-signal-ok' : 'border-signal-err text-signal-err';
   return (
-    <span className={`rounded border px-2 py-0.5 font-mono text-[10px] uppercase tracking-widest2 ${color}`}>
+    <span className={`rounded border px-2 py-0.5 font-mono text-ui-xs uppercase tracking-widest2 ${color}`}>
       {label}
     </span>
   );

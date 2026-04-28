@@ -64,21 +64,21 @@ export function MonacoPane({ workspaceId, path }: Props) {
   }, [isDirty, workspaceId, path, key, write, clearDirty, utils]);
 
   if (file.isLoading) {
-    return <div className="p-6 font-mono text-[12px] text-ink-400">loading…</div>;
+    return <div className="p-6 font-mono text-ui-base text-ink-400">loading…</div>;
   }
   if (file.error) {
-    return <div className="p-6 font-mono text-[12px] text-signal-err">{file.error.message}</div>;
+    return <div className="p-6 font-mono text-ui-base text-signal-err">{file.error.message}</div>;
   }
 
   return (
     <div className="flex h-full flex-col">
       <div className="flex items-center justify-between border-b border-ink-800 bg-ink-900/60 px-4 py-2">
-        <div className="flex items-center gap-2 font-mono text-[11px]">
+        <div className="flex items-center gap-2 font-mono text-ui-sm">
           <span className="text-ink-500">~/</span>
           <span className="text-ink-100">{path}</span>
           {isDirty && <span className="ml-1 text-amber">●</span>}
         </div>
-        <div className="flex items-center gap-3 font-mono text-[10px] uppercase tracking-widest2 text-ink-500">
+        <div className="flex items-center gap-3 font-mono text-ui-xs uppercase tracking-widest2 text-ink-500">
           <span>{language}</span>
           {file.data?.truncated && <span className="text-signal-warn">truncated</span>}
           {savedAt && !isDirty && <span className="text-signal-ok">saved</span>}
