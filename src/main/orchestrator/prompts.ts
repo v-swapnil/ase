@@ -8,7 +8,7 @@ import type { Plan, Observation, TestReport, Verdict } from '@shared/agent';
  */
 function toolCatalog(): string {
   return listTools()
-    .map((t) => `- ${t.name}: ${t.description}`)
+    .map((t) => `- ${t.name}: ${t.description}\n  args: ${JSON.stringify(t.argsSchema)}`)
     .join('\n');
 }
 

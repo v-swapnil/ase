@@ -116,6 +116,18 @@ export const schedules = sqliteTable('schedules', {
   nextRunAt: integer('next_run_at'),
 });
 
+export const taskEvents = sqliteTable(
+  'task_events',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    taskId: text('task_id').notNull(),
+    type: text('type').notNull(),
+    payloadJson: text('payload_json').notNull(),
+    ts: integer('ts').notNull(),
+  },
+  (t) => ({ tIdx: index('idx_task_events_task').on(t.taskId) }),
+);
+
 export const settings = sqliteTable('settings', {
   key: text('key').primaryKey(),
   value: text('value').notNull(),

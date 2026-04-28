@@ -17,6 +17,9 @@ import type { TaskResult } from '@shared/agent';
 
 const log = logger.child({ mod: 'runner' });
 
+/** Maximum wall-clock time for a single task run (default 10 minutes). */
+const TASK_TIMEOUT_MS = 10 * 60 * 1000;
+
 interface RunHandle {
   taskId: string;
   ctrl: AbortController;
@@ -49,6 +52,16 @@ export async function runTask(taskId: string): Promise<TaskResult> {
 }
 
 async function doRun(taskId: string, ctrl: AbortController): Promise<TaskResult> {
+  // Wall-clock timeout: abort the task if it runs too long
+  const timer = setTimeout(() => ctrl.abort(), TASK_TIMEOUT_MS);
+  try {
+    return await doRunInner(taskId, ctrl);
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+async function doRunInner(taskId: string, ctrl: AbortController): Promise<TaskResult> {
   const task = getTask(taskId);
   const session = await loadSessionWorkspace(task);
   const model = (await getSetting(SETTING_KEYS.ACTIVE_MODEL)) ?? '';
@@ -117,7 +130,9 @@ async function doRun(taskId: string, ctrl: AbortController): Promise<TaskResult>
       signal: ctrl.signal,
     })) as AgentState;
 
-    const succeeded = !!final.verdict?.done && !!final.testReport?.ok;
+    const testsRan = !!final.testReport?.ran;
+    const testsOk = !testsRan || !!final.testReport?.ok;
+    const succeeded = !!final.verdict?.done && testsOk;
     const result: TaskResult = {
       status: succeeded ? 'succeeded' : 'failed',
       iterations: final.iteration,

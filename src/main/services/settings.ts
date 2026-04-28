@@ -26,4 +26,5 @@ export const SETTING_KEYS = {
   ACTIVE_MODEL: 'activeModel',
   GIT_AUTO_BRANCH: 'gitAutoBranch',
   UI_THEME: 'uiTheme',
+  QUEUE_CONCURRENCY: 'queueConcurrency',
 } as const;

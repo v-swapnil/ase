@@ -79,14 +79,16 @@ async function llmJson<T>(
 ): Promise<T> {
   const provider = getProvider('ollama');
   const buf: string[] = [];
+  const t0 = Date.now();
+  const messages = [
+    { role: 'system' as const, content: system },
+    { role: 'user' as const, content: user },
+  ];
   const result = await provider.chat({
     model: ctx.model,
     temperature,
     signal: ctx.signal,
-    messages: [
-      { role: 'system', content: system },
-      { role: 'user', content: user },
-    ],
+    messages,
     onDelta: (d) => {
       buf.push(d);
       taskBus.emit(ctx.taskId, {
@@ -99,6 +101,19 @@ async function llmJson<T>(
     },
   });
   const text = result.content || buf.join('');
+
+  // Persist full request + response for conversation history inspection
+  taskBus.emit(ctx.taskId, {
+    type: 'llm.call',
+    taskId: ctx.taskId,
+    ts: Date.now(),
+    agent,
+    model: ctx.model,
+    messages,
+    response: text.slice(0, 100_000),
+    durationMs: Date.now() - t0,
+  });
+
   return extractJson<T>(text);
 }
 

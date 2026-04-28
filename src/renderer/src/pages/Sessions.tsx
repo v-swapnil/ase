@@ -248,12 +248,18 @@ function TaskView({ taskId }: { taskId: string }) {
   const [events, setEvents] = useState<TaskEvent[]>([]);
   const [pendingApprovals, setPendingApprovals] = useState<ApprovalReq[]>([]);
   const logRef = useRef<HTMLDivElement>(null);
+  const seenRef = useRef(new Set<string>());
 
   trpc.task.events.useSubscription(
     { taskId },
     {
       onData: (ev) => {
         const e = ev as TaskEvent;
+        // Dedupe: subscription replays persisted events on reconnect
+        const key = `${e.type}:${e.ts}:${'stepId' in e ? e.stepId : ''}${'approvalId' in e ? e.approvalId : ''}`;
+        if (seenRef.current.has(key)) return;
+        seenRef.current.add(key);
+
         setEvents((prev) => [...prev, e]);
         if (e.type === 'approval.requested') {
           setPendingApprovals((prev) => [

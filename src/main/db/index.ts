@@ -63,6 +63,14 @@ CREATE TABLE IF NOT EXISTS schedules (
   enabled INTEGER NOT NULL DEFAULT 1,
   last_run_at INTEGER, next_run_at INTEGER
 );
+CREATE TABLE IF NOT EXISTS task_events (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  task_id TEXT NOT NULL,
+  type TEXT NOT NULL,
+  payload_json TEXT NOT NULL,
+  ts INTEGER NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_task_events_task ON task_events(task_id);
 CREATE TABLE IF NOT EXISTS settings (
   key TEXT PRIMARY KEY, value TEXT NOT NULL
 );

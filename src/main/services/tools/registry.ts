@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { zodToJsonSchema } from 'zod-to-json-schema';
 import { getWorkspace } from '../workspaces.js';
 import {
   readFileTool,
@@ -26,11 +27,12 @@ const REGISTRY: Record<ToolName, Tool<unknown, unknown>> = {
   git_commit: gitCommitTool as Tool<unknown, unknown>,
 };
 
-export function listTools(): { name: ToolName; description: string; needsApproval: boolean }[] {
+export function listTools(): { name: ToolName; description: string; needsApproval: boolean; argsSchema: Record<string, unknown> }[] {
   return Object.values(REGISTRY).map((t) => ({
     name: t.name,
     description: t.description,
     needsApproval: t.needsApproval,
+    argsSchema: zodToJsonSchema(t.schema, { target: 'jsonSchema7' }) as Record<string, unknown>,
   }));
 }
 

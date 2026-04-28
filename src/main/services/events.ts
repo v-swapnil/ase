@@ -1,4 +1,7 @@
 import { EventEmitter } from 'node:events';
+import { getDb } from '../db/index.js';
+import { taskEvents } from '../db/schema.js';
+import { eq, asc } from 'drizzle-orm';
 
 export type TaskEvent =
   | { type: 'task.started'; taskId: string; ts: number }
@@ -8,6 +11,7 @@ export type TaskEvent =
   | { type: 'step.started'; taskId: string; ts: number; stepId: string; agent: string; tool?: string; input?: unknown }
   | { type: 'step.finished'; taskId: string; ts: number; stepId: string; ok: boolean; output?: unknown; error?: string }
   | { type: 'log'; taskId: string; ts: number; stream: 'stdout' | 'stderr'; text: string; stepId?: string }
+  | { type: 'llm.call'; taskId: string; ts: number; agent: string; model: string; messages: { role: string; content: string }[]; response: string; durationMs: number }
   | { type: 'llm.delta'; taskId: string; ts: number; agent: string; content: string }
   | { type: 'critic'; taskId: string; ts: number; verdict: { done: boolean; reason: string; nextHint?: string } }
   | { type: 'approval.requested'; taskId: string; ts: number; approvalId: string; tool: string; args: unknown }
@@ -18,17 +22,47 @@ class TaskBus {
   constructor() {
     this.bus.setMaxListeners(0);
   }
+
   emit(taskId: string, event: TaskEvent): void {
+    // Persist to SQLite (fire-and-forget, sync via better-sqlite3)
+    try {
+      getDb().insert(taskEvents).values({
+        taskId,
+        type: event.type,
+        payloadJson: JSON.stringify(event),
+        ts: event.ts,
+      }).run();
+    } catch {
+      // Persistence failure should never break the task pipeline
+    }
+
     this.bus.emit(taskId, event);
     this.bus.emit('*', event);
   }
+
   on(taskId: string, listener: (e: TaskEvent) => void): () => void {
     this.bus.on(taskId, listener);
     return () => this.bus.off(taskId, listener);
   }
+
   onAny(listener: (e: TaskEvent) => void): () => void {
     this.bus.on('*', listener);
     return () => this.bus.off('*', listener);
+  }
+
+  /** Read all persisted events for a task from the database. */
+  replayEvents(taskId: string): TaskEvent[] {
+    try {
+      const rows = getDb()
+        .select({ payloadJson: taskEvents.payloadJson })
+        .from(taskEvents)
+        .where(eq(taskEvents.taskId, taskId))
+        .orderBy(asc(taskEvents.id))
+        .all();
+      return rows.map((r) => JSON.parse(r.payloadJson) as TaskEvent);
+    } catch {
+      return [];
+    }
   }
 }
 
