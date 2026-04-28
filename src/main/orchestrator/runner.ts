@@ -4,6 +4,7 @@ import { taskBus } from '../services/events.js';
 import {
   getTask,
   updateTask,
+  setSessionKanbanLane,
   type Task,
 } from '../services/store.js';
 import { getDb } from '../db/index.js';
@@ -187,6 +188,11 @@ function finish(task: Task, result: TaskResult): TaskResult {
     resultJson: JSON.stringify(result).slice(0, 200_000),
     iterations: result.iterations,
     finishedAt: Date.now(),
+  });
+  // Reset manual kanban lane so card auto-derives from new task status
+  // Respects kanban.autoClearOverride setting (default: true)
+  getSetting(SETTING_KEYS.KANBAN_AUTO_CLEAR).then((v) => {
+    if (v !== 'false') setSessionKanbanLane(task.sessionId, null);
   });
   clearTaskApprovals(task.id);
   taskBus.emit(task.id, {

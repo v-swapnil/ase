@@ -4,12 +4,13 @@ import { trpc } from '../trpc';
 
 const NAV: { to: string; label: string; hint: string }[] = [
   { to: '/sessions', label: 'sessions', hint: '01' },
-  { to: '/editor', label: 'editor', hint: '02' },
-  { to: '/skills', label: 'skills', hint: '03' },
-  { to: '/agents', label: 'agents', hint: '04' },
-  { to: '/schedules', label: 'schedules', hint: '05' },
-  { to: '/tools', label: 'tools', hint: '06' },
-  { to: '/settings', label: 'settings', hint: '07' },
+  { to: '/board', label: 'board', hint: '02' },
+  { to: '/editor', label: 'editor', hint: '03' },
+  { to: '/skills', label: 'skills', hint: '04' },
+  { to: '/agents', label: 'agents', hint: '05' },
+  { to: '/schedules', label: 'schedules', hint: '06' },
+  { to: '/tools', label: 'tools', hint: '07' },
+  { to: '/settings', label: 'settings', hint: '08' },
 ];
 
 export function Sidebar() {

@@ -3,6 +3,7 @@ import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { Sidebar } from './components/Sidebar';
 import { TitleBar } from './components/TitleBar';
 import { Sessions } from './pages/Sessions';
+import { KanbanBoard } from './pages/KanbanBoard';
 import { Editor } from './pages/Editor';
 import { Skills } from './pages/Skills';
 import { Agents } from './pages/Agents';
@@ -12,7 +13,7 @@ import { Settings } from './pages/Settings';
 import { trpc } from './trpc';
 import { useUI } from './store/ui';
 
-const NAV_ROUTES = ['/sessions', '/editor', '/skills', '/agents', '/schedules', '/tools', '/settings'];
+const NAV_ROUTES = ['/sessions', '/board', '/editor', '/skills', '/agents', '/schedules', '/tools', '/settings'];
 
 export function App() {
   const navigate = useNavigate();
@@ -37,7 +38,7 @@ export function App() {
     const onKey = (e: KeyboardEvent) => {
       if (!(e.metaKey || e.ctrlKey)) return;
 
-      if (e.key >= '1' && e.key <= '7') {
+      if (e.key >= '1' && e.key <= '8') {
         const idx = Number(e.key) - 1;
         const route = NAV_ROUTES[idx];
         if (!route) return;
@@ -73,6 +74,7 @@ export function App() {
           <Routes>
             <Route path="/" element={<Navigate to="/sessions" replace />} />
             <Route path="/sessions" element={<Sessions />} />
+            <Route path="/board" element={<KanbanBoard />} />
             <Route path="/editor" element={<Editor />} />
             <Route path="/skills" element={<Skills />} />
             <Route path="/agents" element={<Agents />} />

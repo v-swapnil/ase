@@ -21,6 +21,7 @@ export const sessions = sqliteTable(
     workspaceId: text('workspace_id').notNull(),
     title: text('title').notNull(),
     status: text('status').notNull().default('active'),
+    kanbanLane: text('kanban_lane'),
     createdAt: integer('created_at').notNull(),
     updatedAt: integer('updated_at').notNull(),
   },

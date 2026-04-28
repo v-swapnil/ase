@@ -15,10 +15,14 @@ import {
   listTasks,
   listSteps,
   updateTask,
+  setSessionKanbanLane,
 } from '../services/store.js';
 import { enqueueTask, cancelQueuedOrRunning } from '../orchestrator/queue.js';
 import { taskBus, type TaskEvent } from '../services/events.js';
 import { exportTaskReport } from '../services/reports.js';
+import { deriveKanbanLane, type KanbanCard, type KanbanLane, type TaskStatus } from '@shared/types';
+
+const kanbanLaneSchema = z.enum(['todo', 'in_progress', 'done', 'need_help']);
 
 export const sessionRouter = router({
   create: publicProcedure
@@ -60,6 +64,50 @@ export const sessionRouter = router({
   messages: publicProcedure
     .input(z.object({ sessionId: z.string().min(1) }))
     .query(({ input }) => listMessages(input.sessionId)),
+
+  kanban: publicProcedure
+    .input(z.object({ workspaceId: z.string().optional() }).optional())
+    .query(({ input }): KanbanCard[] => {
+      const allSessions = listSessions(input?.workspaceId);
+      return allSessions.map((s) => {
+        const tasks = listTasks(s.id);
+        const statuses = tasks.map((t) => t.status as TaskStatus);
+        const autoLane = deriveKanbanLane(statuses);
+        return {
+          sessionId: s.id,
+          title: s.title,
+          workspaceId: s.workspaceId,
+          lane: (s.kanbanLane as KanbanLane) ?? autoLane,
+          manualLane: (s.kanbanLane as KanbanLane) ?? null,
+          taskSummary: {
+            total: tasks.length,
+            queued: statuses.filter((st) => st === 'queued').length,
+            running: statuses.filter((st) => st === 'running').length,
+            succeeded: statuses.filter((st) => st === 'succeeded').length,
+            failed: statuses.filter((st) => st === 'failed').length,
+            awaitingApproval: statuses.filter((st) => st === 'awaiting_approval').length,
+            cancelled: statuses.filter((st) => st === 'cancelled').length,
+          },
+          lastActivity: Math.max(
+            s.updatedAt,
+            ...tasks.map((t) => t.finishedAt ?? t.startedAt ?? t.createdAt),
+          ),
+          createdAt: s.createdAt,
+        };
+      });
+    }),
+
+  setLane: publicProcedure
+    .input(
+      z.object({
+        sessionId: z.string().min(1),
+        lane: kanbanLaneSchema.nullable(),
+      }),
+    )
+    .mutation(({ input }) => {
+      setSessionKanbanLane(input.sessionId, input.lane);
+      return { ok: true as const };
+    }),
 });
 
 export const taskRouter = router({

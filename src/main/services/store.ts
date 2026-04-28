@@ -8,6 +8,7 @@ export interface Session {
   workspaceId: string;
   title: string;
   status: string;
+  kanbanLane: string | null;
   createdAt: number;
   updatedAt: number;
 }
@@ -48,6 +49,7 @@ export function createSession(workspaceId: string, title: string): Session {
     workspaceId,
     title,
     status: 'active' as const,
+    kanbanLane: null,
     createdAt: now,
     updatedAt: now,
   };
@@ -173,4 +175,14 @@ export function listSteps(taskId: string): Step[] {
     .where(eq(steps.taskId, taskId))
     .all()
     .sort((a, b) => a.idx - b.idx) as Step[];
+}
+
+// ───────── Kanban ─────────
+
+export function setSessionKanbanLane(sessionId: string, lane: string | null): void {
+  getDb()
+    .update(sessions)
+    .set({ kanbanLane: lane, updatedAt: Date.now() })
+    .where(eq(sessions.id, sessionId))
+    .run();
 }

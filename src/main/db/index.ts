@@ -17,6 +17,7 @@ CREATE TABLE IF NOT EXISTS workspaces (
 CREATE TABLE IF NOT EXISTS sessions (
   id TEXT PRIMARY KEY, workspace_id TEXT NOT NULL, title TEXT NOT NULL,
   status TEXT NOT NULL DEFAULT 'active',
+  kanban_lane TEXT DEFAULT NULL,
   created_at INTEGER NOT NULL, updated_at INTEGER NOT NULL
 );
 CREATE INDEX IF NOT EXISTS idx_sessions_ws ON sessions(workspace_id);
@@ -83,6 +84,12 @@ export function initDb(): BetterSQLite3Database<typeof schema> {
   _sqlite.pragma('journal_mode = WAL');
   _sqlite.pragma('foreign_keys = ON');
   _sqlite.exec(BOOTSTRAP_SQL);
+  // Additive migration: add kanban_lane to sessions if missing
+  try {
+    _sqlite.exec(`ALTER TABLE sessions ADD COLUMN kanban_lane TEXT DEFAULT NULL`);
+  } catch {
+    // Column already exists — ignore
+  }
   _db = drizzle(_sqlite, { schema });
   logger.info({ path }, 'db ready');
   return _db;
