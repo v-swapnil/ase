@@ -265,7 +265,6 @@ function TaskView({ taskId }: { taskId: string }) {
     {
       onData: (ev) => {
         const e = ev as TaskEvent;
-        // Dedupe: subscription replays persisted events on reconnect
         const key = `${e.type}:${e.ts}:${'stepId' in e ? e.stepId : ''}${'approvalId' in e ? e.approvalId : ''}`;
         if (seenRef.current.has(key)) return;
         seenRef.current.add(key);
@@ -280,7 +279,6 @@ function TaskView({ taskId }: { taskId: string }) {
           setPendingApprovals((prev) => prev.filter((a) => a.id !== e.approvalId));
         } else if (e.type === 'task.finished') {
           setPendingApprovals([]);
-          utils.task.get.invalidate({ id: taskId });
         }
       },
     },
@@ -303,6 +301,14 @@ function TaskView({ taskId }: { taskId: string }) {
   const status = task.data?.status ?? 'queued';
   const running = status === 'running' || status === 'queued';
   const finished = status === 'succeeded' || status === 'failed' || status === 'cancelled';
+
+  // If the DB already shows the task is done (e.g. app crashed without emitting
+  // task.finished), clear any stale approval requests from the replay.
+  useEffect(() => {
+    if (finished) {
+      setPendingApprovals([]);
+    }
+  }, [finished]);
 
   // Refresh git diff when files likely changed.
   const fileTouched = useMemo(() => {
@@ -410,15 +416,26 @@ function TaskView({ taskId }: { taskId: string }) {
         </Panel>
       </aside>
 
-      {/* {pendingApprovals.length > 0 && pendingApprovals[0] && (
+      {pendingApprovals.length > 0 && pendingApprovals[0] && (
         <ApprovalModal
           req={pendingApprovals[0]}
           remaining={pendingApprovals.length - 1}
-          onDecide={(d) =>
-            decide.mutate({ id: pendingApprovals[0]!.id, decision: d })
-          }
+          onDecide={(d) => {
+            const aid = pendingApprovals[0]!.id;
+            decide.mutate(
+              { id: aid, decision: d },
+              {
+                onSuccess: (res) => {
+                  if (!res.ok) {
+                    // Backend can't resolve (stale) — just remove from UI
+                    setPendingApprovals((prev) => prev.filter((a) => a.id !== aid));
+                  }
+                },
+              },
+            );
+          }}
         />
-      )} */}
+      )}
     </div>
   );
 }

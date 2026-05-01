@@ -155,3 +155,16 @@ export function clearTaskApprovals(taskId: string): void {
     }
   }
 }
+
+/**
+ * Mark all DB approval rows still in 'pending' state as 'stale'.
+ * Called once on app startup — these approvals can never be resolved because
+ * the in-memory promise that was waiting for them died with the previous process.
+ */
+export function clearStaleApprovals(): void {
+  getDb()
+    .update(approvals)
+    .set({ decision: 'stale', decidedAt: Date.now() })
+    .where(eq(approvals.decision, 'pending'))
+    .run();
+}

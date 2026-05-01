@@ -8,8 +8,8 @@ import {
   type Task,
 } from '../services/store.js';
 import { getDb } from '../db/index.js';
-import { sessions } from '../db/schema.js';
-import { eq } from 'drizzle-orm';
+import { sessions, tasks as tasksTable } from '../db/schema.js';
+import { eq, inArray } from 'drizzle-orm';
 import { logger } from '../services/logger.js';
 import { clearTaskApprovals } from '../services/approvals.js';
 import { createBranch, commitAll } from '../services/git.js';
@@ -32,6 +32,22 @@ const inflight = new Map<string, RunHandle>();
 
 export function isRunning(taskId: string): boolean {
   return inflight.has(taskId);
+}
+
+/**
+ * On startup no task can genuinely be running.  Mark any 'running' or 'queued'
+ * tasks as 'failed' so stale approval events are never treated as pending.
+ */
+export function markOrphanedTasksFailed(): void {
+  const now = Date.now();
+  const result = getDb()
+    .update(tasksTable)
+    .set({ status: 'failed', finishedAt: now })
+    .where(inArray(tasksTable.status, ['running', 'queued']))
+    .run();
+  if (result.changes > 0) {
+    log.info({ count: result.changes }, 'marked orphaned tasks as failed');
+  }
 }
 
 export function cancelTask(taskId: string): boolean {
