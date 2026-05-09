@@ -109,6 +109,16 @@ function bridgeEvent(taskId: string, event: SessionEvent): void {
       });
       break;
 
+    case 'assistant.reasoning_delta':
+      taskBus.emit(taskId, {
+        type: 'llm.thinking_delta',
+        taskId,
+        ts,
+        agent: 'copilot',
+        content: (event as any).data.deltaContent,
+      });
+      break;
+
     case 'tool.execution_start':
       taskBus.emit(taskId, {
         type: 'step.started',

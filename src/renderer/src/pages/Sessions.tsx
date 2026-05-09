@@ -50,6 +50,7 @@ type TaskEvent =
       stepId?: string;
     }
   | { type: 'llm.delta'; taskId: string; ts: number; agent: string; content: string }
+  | { type: 'llm.thinking_delta'; taskId: string; ts: number; agent: string; content: string }
   | {
       type: 'critic';
       taskId: string;
@@ -81,21 +82,24 @@ export function Sessions() {
     { enabled: !!workspaceId },
   );
   const [sessionId, setSessionId] = useState<string | null>(searchParams.get('id'));
+  const [focusedTaskId, setFocusedTaskId] = useState<string | null>(null);
+  const [expandedSessions, setExpandedSessions] = useState<Set<string>>(new Set());
   const create = trpc.session.create.useMutation({
     onSuccess: async (s) => {
       await utils.session.list.invalidate();
       setSessionId(s.id);
+      setExpandedSessions((prev) => new Set(prev).add(s.id));
     },
   });
   const del = trpc.session.delete.useMutation({
     onSuccess: async () => {
       await utils.session.list.invalidate();
       setSessionId(null);
+      setFocusedTaskId(null);
     },
   });
 
   useEffect(() => {
-    // Clear the ?id= param after consuming it so it doesn't stick around
     if (searchParams.has('id')) {
       searchParams.delete('id');
       setSearchParams(searchParams, { replace: true });
@@ -103,11 +107,29 @@ export function Sessions() {
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    if (!sessionId && sessionsQ.data?.length) setSessionId(sessionsQ.data[0]!.id);
+    if (!sessionId && sessionsQ.data?.length) {
+      const first = sessionsQ.data[0]!;
+      setSessionId(first.id);
+      setExpandedSessions((prev) => new Set(prev).add(first.id));
+    }
   }, [sessionId, sessionsQ.data]);
 
+  // Auto-expand selected session
+  useEffect(() => {
+    if (sessionId) setExpandedSessions((prev) => new Set(prev).add(sessionId));
+  }, [sessionId]);
+
+  const toggleExpand = (id: string) => {
+    setExpandedSessions((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
   return (
-    <div className="grid h-full grid-cols-[260px_1fr] gap-6 p-6">
+    <div className="grid h-full grid-cols-[280px_1fr] gap-6 p-6">
       <aside className="flex flex-col">
         <div className="mb-3 flex items-center justify-between">
           <div className="font-mono text-ui-xs uppercase tracking-widest2 text-ink-400">
@@ -131,34 +153,24 @@ export function Sessions() {
           <div className="font-mono text-ui-sm text-ink-500">no active workspace</div>
         )}
 
-        <div className="flex-1 space-y-1 overflow-y-auto">
+        <div className="flex-1 space-y-0.5 overflow-y-auto">
           {sessionsQ.data?.map((s) => (
-            <button
+            <SessionTreeNode
               key={s.id}
-              onClick={() => setSessionId(s.id)}
-              className={cn(
-                'group flex w-full items-start justify-between rounded border px-3 py-2 text-left transition-colors',
-                sessionId === s.id
-                  ? 'border-amber-700/60 bg-amber-950/20'
-                  : 'border-ink-800 bg-ink-900/30 hover:border-ink-700',
-              )}
-            >
-              <div className="min-w-0">
-                <div className="truncate font-serif text-ui-lg text-ink-50">{s.title}</div>
-                <div className="mt-0.5 font-mono text-ui-xs text-ink-500">
-                  {new Date(s.updatedAt).toLocaleString()}
-                </div>
-              </div>
-              <span
-                className="invisible ml-2 cursor-pointer font-mono text-ui-xs text-ink-500 hover:text-rose-400 group-hover:visible"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  if (confirm(`Delete session "${s.title}"?`)) del.mutate({ id: s.id });
-                }}
-              >
-                del
-              </span>
-            </button>
+              session={s}
+              isActive={sessionId === s.id}
+              isExpanded={expandedSessions.has(s.id)}
+              focusedTaskId={focusedTaskId}
+              onSelect={() => setSessionId(s.id)}
+              onToggle={() => toggleExpand(s.id)}
+              onDelete={() => {
+                if (confirm(`Delete session "${s.title}"?`)) del.mutate({ id: s.id });
+              }}
+              onTaskSelect={(taskId) => {
+                setSessionId(s.id);
+                setFocusedTaskId(taskId);
+              }}
+            />
           ))}
           {sessionsQ.data?.length === 0 && (
             <div className="font-mono text-ui-sm text-ink-500">no sessions yet</div>
@@ -168,7 +180,12 @@ export function Sessions() {
 
       <main className="min-w-0">
         {sessionId ? (
-          <SessionDetail sessionId={sessionId} key={sessionId} />
+          <SessionDetail
+            sessionId={sessionId}
+            key={sessionId}
+            focusedTaskId={focusedTaskId}
+            onTaskFocus={setFocusedTaskId}
+          />
         ) : (
           <div className="flex h-full items-center justify-center font-mono text-ui-sm text-ink-500">
             select or create a session
@@ -179,25 +196,121 @@ export function Sessions() {
   );
 }
 
-function SessionDetail({ sessionId }: { sessionId: string }) {
+function SessionTreeNode({
+  session,
+  isActive,
+  isExpanded,
+  focusedTaskId,
+  onSelect,
+  onToggle,
+  onDelete,
+  onTaskSelect,
+}: {
+  session: { id: string; title: string; updatedAt: number };
+  isActive: boolean;
+  isExpanded: boolean;
+  focusedTaskId: string | null;
+  onSelect: () => void;
+  onToggle: () => void;
+  onDelete: () => void;
+  onTaskSelect: (taskId: string) => void;
+}) {
+  const tasks = trpc.task.list.useQuery(
+    { sessionId: session.id },
+    { refetchInterval: isActive ? 2000 : false },
+  );
+
+  return (
+    <div>
+      <div
+        className={cn(
+          'group flex w-full items-center gap-1 rounded border px-2 py-1.5 text-left transition-colors',
+          isActive
+            ? 'border-amber-700/60 bg-amber-950/20'
+            : 'border-transparent hover:border-ink-800',
+        )}
+      >
+        <button
+          className="shrink-0 font-mono text-ui-xs text-ink-500 hover:text-ink-300"
+          onClick={(e) => {
+            e.stopPropagation();
+            onToggle();
+          }}
+        >
+          {isExpanded ? '▾' : '▸'}
+        </button>
+        <button className="min-w-0 flex-1 text-left" onClick={onSelect}>
+          <div className="truncate font-serif text-ui-base text-ink-50">{session.title}</div>
+          <div className="font-mono text-ui-xs text-ink-500">
+            {new Date(session.updatedAt).toLocaleString()}
+            {tasks.data ? ` · ${tasks.data.length} tasks` : ''}
+          </div>
+        </button>
+        <span
+          className="invisible shrink-0 cursor-pointer font-mono text-ui-xs text-ink-500 hover:text-rose-400 group-hover:visible"
+          onClick={(e) => {
+            e.stopPropagation();
+            onDelete();
+          }}
+        >
+          del
+        </span>
+      </div>
+
+      {isExpanded && tasks.data && tasks.data.length > 0 && (
+        <div className="ml-4 border-l border-ink-800 pl-2">
+          {tasks.data.map((t, i) => (
+            <button
+              key={t.id}
+              onClick={() => onTaskSelect(t.id)}
+              className={cn(
+                'mt-0.5 flex w-full items-center gap-2 rounded px-2 py-1 text-left transition-colors',
+                focusedTaskId === t.id
+                  ? 'bg-amber-950/30'
+                  : 'hover:bg-ink-900/40',
+              )}
+            >
+              <span className="shrink-0 font-mono text-ui-xs text-ink-600">
+                #{tasks.data!.length - i}
+              </span>
+              <span className="min-w-0 flex-1 truncate font-mono text-ui-xs text-ink-300">
+                {t.prompt}
+              </span>
+              <StatusPill status={t.status} compact />
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function SessionDetail({
+  sessionId,
+  focusedTaskId,
+  onTaskFocus,
+}: {
+  sessionId: string;
+  focusedTaskId: string | null;
+  onTaskFocus: (id: string | null) => void;
+}) {
   const utils = trpc.useUtils();
   const session = trpc.session.get.useQuery({ id: sessionId });
   const tasks = trpc.task.list.useQuery({ sessionId }, { refetchInterval: 2000 });
   const worktree = trpc.worktree.getForSession.useQuery({ sessionId });
   const openPath = trpc.worktree.openPath.useMutation();
   const [prompt, setPrompt] = useState('');
-  const [focusedTaskId, setFocusedTaskId] = useState<string | null>(null);
   const create = trpc.task.create.useMutation({
     onSuccess: async (t) => {
       await utils.task.list.invalidate({ sessionId });
-      setFocusedTaskId(t.id);
+      onTaskFocus(t.id);
       setPrompt('');
     },
   });
 
   useEffect(() => {
-    if (!focusedTaskId && tasks.data?.length) setFocusedTaskId(tasks.data[0]!.id);
-  }, [focusedTaskId, tasks.data]);
+    if (!focusedTaskId && tasks.data?.length) onTaskFocus(tasks.data[0]!.id);
+  }, [focusedTaskId, tasks.data]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div className="flex h-full min-h-0 flex-col">
@@ -230,49 +343,14 @@ function SessionDetail({ sessionId }: { sessionId: string }) {
         )}
       </header>
 
-      <div className="grid min-h-0 flex-1 grid-cols-[180px_1fr] gap-4 overflow-hidden">
-        <aside className="flex min-h-0 flex-col">
-          <div className="mb-2 font-mono text-ui-xs uppercase tracking-widest2 text-ink-400">
-            tasks
+      <div className="min-h-0 flex-1 overflow-hidden">
+        {focusedTaskId ? (
+          <TaskView taskId={focusedTaskId} key={focusedTaskId} />
+        ) : (
+          <div className="flex h-full items-center justify-center font-mono text-ui-sm text-ink-500">
+            submit a prompt to begin
           </div>
-          <div className="flex-1 space-y-1 overflow-y-auto">
-            {tasks.data?.map((t, i) => (
-              <button
-                key={t.id}
-                onClick={() => setFocusedTaskId(t.id)}
-                className={cn(
-                  'flex w-full flex-col rounded border px-2 py-1.5 text-left',
-                  focusedTaskId === t.id
-                    ? 'border-amber-700/60 bg-amber-950/20'
-                    : 'border-ink-800 bg-ink-900/30 hover:border-ink-700',
-                )}
-              >
-                <div className="flex items-center justify-between">
-                  <span className="font-mono text-ui-xs text-ink-500">
-                    #{tasks.data!.length - i}
-                  </span>
-                  <StatusPill status={t.status} compact />
-                </div>
-                <div className="mt-1 line-clamp-2 font-serif text-ui-sm text-ink-100">
-                  {t.prompt}
-                </div>
-              </button>
-            ))}
-            {tasks.data?.length === 0 && (
-              <div className="font-mono text-ui-sm text-ink-500">no tasks yet</div>
-            )}
-          </div>
-        </aside>
-
-        <div className="min-h-0 min-w-0">
-          {focusedTaskId ? (
-            <TaskView taskId={focusedTaskId} key={focusedTaskId} />
-          ) : (
-            <div className="flex h-full items-center justify-center font-mono text-ui-sm text-ink-500">
-              submit a prompt to begin
-            </div>
-          )}
-        </div>
+        )}
       </div>
 
       <form
@@ -322,10 +400,13 @@ interface ApprovalReq {
 
 const getEvents = (previousEvents: TaskEvent[], currentEvent: TaskEvent) => {
   const lastEvent = previousEvents[previousEvents.length - 1];
-  if (lastEvent?.type === 'llm.delta' && currentEvent.type === 'llm.delta') {
+  if (
+    lastEvent?.type === 'llm.delta' && currentEvent.type === 'llm.delta' ||
+    lastEvent?.type === 'llm.thinking_delta' && currentEvent.type === 'llm.thinking_delta'
+  ) {
     return previousEvents
       .slice(0, -1)
-      .concat({ ...lastEvent, content: lastEvent.content + currentEvent.content });
+      .concat({ ...lastEvent, content: lastEvent.content + currentEvent.content } as TaskEvent);
   }
   return previousEvents.concat(currentEvent);
 };
@@ -673,6 +754,12 @@ function EventRow({ ev }: { ev: TaskEvent }) {
           {ts} ← {ev.content}
         </Line>
       );
+    case 'llm.thinking_delta':
+      return (
+        <Line tone="purple" dim>
+          {ts} 💭 {ev.content}
+        </Line>
+      );
     case 'task.iteration':
       return (
         <Line tone="amber">
@@ -689,7 +776,7 @@ function Line({
   dim,
   children,
 }: {
-  tone: 'amber' | 'emerald' | 'rose' | 'ink';
+  tone: 'amber' | 'emerald' | 'rose' | 'ink' | 'purple';
   dim?: boolean;
   children: React.ReactNode;
 }) {
@@ -697,6 +784,7 @@ function Line({
     amber: 'text-amber-300',
     emerald: 'text-emerald-300',
     rose: 'text-rose-300',
+    purple: dim ? 'text-purple-400' : 'text-purple-300',
     ink: dim ? 'text-ink-400' : 'text-ink-200',
   }[tone];
   return <div className={cn('whitespace-pre-wrap', colour)}>{children}</div>;

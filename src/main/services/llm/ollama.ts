@@ -92,6 +92,7 @@ export class OllamaProvider implements LLMProvider {
     });
 
     let content = '';
+    let thinking = '';
     let model = opts.model;
     let totalDurationMs: number | undefined;
     let promptTokens: number | undefined;
@@ -99,6 +100,11 @@ export class OllamaProvider implements LLMProvider {
     let toolCalls: ToolCallResult[] | undefined;
 
     for await (const chunk of response) {
+      if ((chunk.message as any)?.thinking) {
+        const t = (chunk.message as any).thinking as string;
+        thinking += t;
+        opts.onThinkingDelta?.(t);
+      }
       if (chunk.message?.content) {
         content += chunk.message.content;
         opts.onDelta?.(chunk.message.content);
@@ -122,6 +128,7 @@ export class OllamaProvider implements LLMProvider {
 
     return {
       content,
+      thinking: thinking || undefined,
       model,
       toolCalls,
       usage: { promptTokens, completionTokens, totalDurationMs },

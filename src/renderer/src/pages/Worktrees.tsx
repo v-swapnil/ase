@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PageShell } from '../components/PageShell';
 import { trpc } from '../trpc';
@@ -11,20 +10,9 @@ export function Worktrees() {
   const remove = trpc.worktree.remove.useMutation({
     onSuccess: () => utils.worktree.list.invalidate(),
   });
-  const del = trpc.worktree.delete.useMutation({
-    onSuccess: () => utils.worktree.list.invalidate(),
-  });
-  const [confirmId, setConfirmId] = useState<string | null>(null);
 
   const active = worktrees.data?.filter((w) => w.status === 'active') ?? [];
   const removed = worktrees.data?.filter((w) => w.status === 'removed') ?? [];
-
-  const handleDeleteAll = () => {
-    if (!confirm('Delete all removed worktrees from the database?')) return;
-    for (const w of removed) {
-      del.mutate({ id: w.id });
-    }
-  };
 
   return (
     <PageShell
@@ -89,52 +77,21 @@ export function Worktrees() {
                 </div>
               </div>
 
-              <div className="flex shrink-0 items-center gap-2 pt-0.5">
-                {w.status === 'active' && (
+              {w.status === 'active' && (
+                <div className="flex shrink-0 items-center gap-2 pt-0.5">
                   <button
                     onClick={() => {
-                      if (confirm(`Remove worktree "${w.branch}"?`)) remove.mutate({ id: w.id });
+                      if (confirm(`Delete worktree "${w.branch}"?`)) remove.mutate({ id: w.id });
                     }}
                     disabled={remove.isPending}
                     className="rounded border border-ink-700 px-2 py-0.5 font-mono text-ui-xs uppercase tracking-widest2 text-ink-300 hover:border-rose-500 hover:text-rose-400 disabled:opacity-40"
                   >
-                    remove
+                    delete
                   </button>
-                )}
-                <button
-                  onClick={() => {
-                    if (confirmId === w.id) {
-                      del.mutate({ id: w.id });
-                      setConfirmId(null);
-                    } else {
-                      setConfirmId(w.id);
-                    }
-                  }}
-                  disabled={del.isPending}
-                  className={cn(
-                    'rounded border px-2 py-0.5 font-mono text-ui-xs uppercase tracking-widest2 disabled:opacity-40',
-                    confirmId === w.id
-                      ? 'border-rose-600 bg-rose-950/30 text-rose-400'
-                      : 'border-ink-700 text-ink-400 hover:border-rose-500 hover:text-rose-400',
-                  )}
-                >
-                  {confirmId === w.id ? 'confirm?' : 'delete'}
-                </button>
-              </div>
+                </div>
+              )}
             </div>
           ))}
-        </div>
-      )}
-
-      {removed.length > 0 && (
-        <div className="mt-4">
-          <button
-            onClick={handleDeleteAll}
-            disabled={del.isPending}
-            className="rounded border border-ink-700 px-3 py-1.5 font-mono text-ui-xs uppercase tracking-widest2 text-ink-400 hover:border-rose-500 hover:text-rose-400 disabled:opacity-40"
-          >
-            delete all removed ({removed.length})
-          </button>
         </div>
       )}
 

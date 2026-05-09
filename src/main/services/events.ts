@@ -52,6 +52,7 @@ export type TaskEvent =
       durationMs: number;
     }
   | { type: 'llm.delta'; taskId: string; ts: number; agent: string; content: string }
+  | { type: 'llm.thinking_delta'; taskId: string; ts: number; agent: string; content: string }
   | {
       type: 'critic';
       taskId: string;

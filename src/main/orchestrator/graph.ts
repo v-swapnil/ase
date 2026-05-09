@@ -99,6 +99,15 @@ async function llmJson<T>(
         content: d,
       });
     },
+    onThinkingDelta: (d) => {
+      taskBus.emit(ctx.taskId, {
+        type: 'llm.thinking_delta',
+        taskId: ctx.taskId,
+        ts: Date.now(),
+        agent,
+        content: d,
+      });
+    },
   });
   const text = result.content || buf.join('');
 
@@ -156,6 +165,15 @@ async function llmWithTools(
       buf.push(d);
       taskBus.emit(ctx.taskId, {
         type: 'llm.delta',
+        taskId: ctx.taskId,
+        ts: Date.now(),
+        agent,
+        content: d,
+      });
+    },
+    onThinkingDelta: (d) => {
+      taskBus.emit(ctx.taskId, {
+        type: 'llm.thinking_delta',
         taskId: ctx.taskId,
         ts: Date.now(),
         agent,

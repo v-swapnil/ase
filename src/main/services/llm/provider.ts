@@ -25,11 +25,13 @@ export interface ChatOptions {
   temperature?: number;
   signal?: AbortSignal;
   onDelta?: (delta: string) => void;
+  onThinkingDelta?: (delta: string) => void;
   tools?: ChatToolDef[];
 }
 
 export interface ChatResult {
   content: string;
+  thinking?: string;
   model: string;
   toolCalls?: ToolCallResult[];
   usage?: { promptTokens?: number; completionTokens?: number; totalDurationMs?: number };
