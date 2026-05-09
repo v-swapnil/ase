@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { Sidebar } from './components/Sidebar';
 import { TitleBar } from './components/TitleBar';
-import { Sessions } from './pages/Sessions';
+import { Sessions } from './pages/sessions';
 import { KanbanBoard } from './pages/KanbanBoard';
 import { Editor } from './pages/Editor';
 import { Skills } from './pages/Skills';
