@@ -137,6 +137,7 @@ async function doRunInner(taskId: string, ctrl: AbortController): Promise<TaskRe
   try {
     // Dispatch based on active provider
     const provider = (await getSetting(SETTING_KEYS.ACTIVE_PROVIDER)) ?? 'ollama';
+    updateTask(taskId, { provider });
 
     let result: TaskResult;
     if (provider === 'copilot') {

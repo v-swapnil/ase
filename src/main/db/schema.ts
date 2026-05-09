@@ -41,6 +41,7 @@ export const tasks = sqliteTable(
     sessionId: text('session_id').notNull(),
     prompt: text('prompt').notNull(),
     status: text('status').notNull().default('queued'),
+    provider: text('provider'),
     planJson: text('plan_json'),
     resultJson: text('result_json'),
     iterations: integer('iterations').notNull().default(0),

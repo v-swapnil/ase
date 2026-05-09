@@ -462,6 +462,8 @@ function TaskView({ taskId }: { taskId: string }) {
   }, [events]);
 
   const status = task.data?.status ?? 'queued';
+  const provider = task.data?.provider ?? 'ollama';
+  const showPlanVerdict = provider === 'ollama';
   const running = status === 'running' || status === 'queued';
   const finished = status === 'succeeded' || status === 'failed' || status === 'cancelled';
 
@@ -481,7 +483,7 @@ function TaskView({ taskId }: { taskId: string }) {
   }, [events]);
 
   return (
-    <div className="grid h-full min-h-0 grid-cols-[1fr_320px] gap-4 overflow-hidden">
+    <div className={cn('grid h-full min-h-0 gap-4 overflow-hidden', showPlanVerdict ? 'grid-cols-[1fr_320px]' : 'grid-cols-1')}>
       <div className="flex min-h-0 min-w-0 flex-col">
         <div className="mb-2 flex items-center justify-between">
           <div className="font-mono text-ui-xs uppercase tracking-widest2 text-ink-400">
@@ -529,50 +531,52 @@ function TaskView({ taskId }: { taskId: string }) {
         </div>
       </div>
 
-      <aside className="flex min-h-0 flex-col gap-4 overflow-y-auto">
-        <Panel title="plan">
-          {plan ? (
-            <div>
-              <div className="mb-2 font-serif text-ui-lg italic text-ink-200">{plan.summary}</div>
-              {plan.selectedSkills && plan.selectedSkills.length > 0 && (
-                <div className="mb-2 flex flex-wrap gap-1">
-                  {plan.selectedSkills.map((s) => (
-                    <span
-                      key={s}
-                      className="rounded border border-amber-700/60 bg-amber-950/20 px-1.5 py-0.5 font-mono text-ui-2xs uppercase tracking-widest2 text-amber-300"
-                    >
-                      {s}
-                    </span>
+      {showPlanVerdict && (
+        <aside className="flex min-h-0 flex-col gap-4 overflow-y-auto">
+          <Panel title="plan">
+            {plan ? (
+              <div>
+                <div className="mb-2 font-serif text-ui-lg italic text-ink-200">{plan.summary}</div>
+                {plan.selectedSkills && plan.selectedSkills.length > 0 && (
+                  <div className="mb-2 flex flex-wrap gap-1">
+                    {plan.selectedSkills.map((s) => (
+                      <span
+                        key={s}
+                        className="rounded border border-amber-700/60 bg-amber-950/20 px-1.5 py-0.5 font-mono text-ui-2xs uppercase tracking-widest2 text-amber-300"
+                      >
+                        {s}
+                      </span>
+                    ))}
+                  </div>
+                )}
+                <ol className="space-y-1 font-mono text-ui-sm">
+                  {plan.steps.map((s, i) => (
+                    <li key={s.id} className="text-ink-200">
+                      <span className="text-ink-500">{i + 1}.</span> {s.goal}
+                    </li>
                   ))}
-                </div>
-              )}
-              <ol className="space-y-1 font-mono text-ui-sm">
-                {plan.steps.map((s, i) => (
-                  <li key={s.id} className="text-ink-200">
-                    <span className="text-ink-500">{i + 1}.</span> {s.goal}
-                  </li>
-                ))}
-              </ol>
-            </div>
-          ) : (
-            <div className="font-mono text-ui-sm text-ink-500">awaiting plan…</div>
-          )}
-        </Panel>
-        <Panel title="verdict">
-          {verdict ? (
-            <div className="space-y-1 font-mono text-ui-sm">
-              <div className={verdict.done ? 'text-emerald-400' : 'text-amber-400'}>
-                {verdict.done ? '✔ done' : '↻ continue'}
+                </ol>
               </div>
-              <DiffPanel touchedKey={fileTouched} />
-              <div className="text-ink-300">{verdict.reason}</div>
-              {verdict.nextHint && <div className="text-ink-500">hint: {verdict.nextHint}</div>}
-            </div>
-          ) : (
-            <div className="font-mono text-ui-sm text-ink-500">no verdict yet</div>
-          )}
-        </Panel>
-      </aside>
+            ) : (
+              <div className="font-mono text-ui-sm text-ink-500">awaiting plan…</div>
+            )}
+          </Panel>
+          <Panel title="verdict">
+            {verdict ? (
+              <div className="space-y-1 font-mono text-ui-sm">
+                <div className={verdict.done ? 'text-emerald-400' : 'text-amber-400'}>
+                  {verdict.done ? '✔ done' : '↻ continue'}
+                </div>
+                <DiffPanel touchedKey={fileTouched} />
+                <div className="text-ink-300">{verdict.reason}</div>
+                {verdict.nextHint && <div className="text-ink-500">hint: {verdict.nextHint}</div>}
+              </div>
+            ) : (
+              <div className="font-mono text-ui-sm text-ink-500">no verdict yet</div>
+            )}
+          </Panel>
+        </aside>
+      )}
 
       {pendingApprovals.length > 0 && pendingApprovals[0] && (
         <ApprovalModal

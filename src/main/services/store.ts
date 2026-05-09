@@ -20,6 +20,7 @@ export interface Task {
   sessionId: string;
   prompt: string;
   status: string;
+  provider: string | null;
   planJson: string | null;
   resultJson: string | null;
   iterations: number;
@@ -136,6 +137,7 @@ export function createTask(sessionId: string, prompt: string, maxIterations = 6)
     sessionId,
     prompt,
     status: 'queued',
+    provider: null,
     planJson: null,
     resultJson: null,
     iterations: 0,

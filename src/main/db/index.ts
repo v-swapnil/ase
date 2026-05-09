@@ -29,6 +29,7 @@ CREATE INDEX IF NOT EXISTS idx_messages_session ON messages(session_id);
 CREATE TABLE IF NOT EXISTS tasks (
   id TEXT PRIMARY KEY, session_id TEXT NOT NULL, prompt TEXT NOT NULL,
   status TEXT NOT NULL DEFAULT 'queued',
+  provider TEXT,
   plan_json TEXT, result_json TEXT,
   iterations INTEGER NOT NULL DEFAULT 0,
   max_iterations INTEGER NOT NULL DEFAULT 6,
