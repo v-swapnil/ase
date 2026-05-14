@@ -1,7 +1,7 @@
 import { eq, desc } from 'drizzle-orm';
 import { nanoid } from 'nanoid';
 import { getDb } from '../db/index.js';
-import { sessions, messages, tasks, steps } from '../db/schema.js';
+import { sessions, messages, tasks, steps, memories } from '../db/schema.js';
 import { getSetting, SETTING_KEYS } from './settings.js';
 import { createWorktree, removeWorktreeBySession } from './worktrees.js';
 
@@ -100,6 +100,7 @@ export function deleteSession(id: string): void {
   }
   db.delete(tasks).where(eq(tasks.sessionId, id)).run();
   db.delete(messages).where(eq(messages.sessionId, id)).run();
+  db.delete(memories).where(eq(memories.sessionId, id)).run();
   db.delete(sessions).where(eq(sessions.id, id)).run();
 }
 
@@ -131,7 +132,11 @@ export function listMessages(sessionId: string): Message[] {
 
 // ───────── Tasks ─────────
 
-export function createTask(sessionId: string, prompt: string, maxIterations = 6): Task {
+export function createTask(
+  sessionId: string,
+  prompt: string,
+  maxIterations = 6,
+): Task {
   const t: Task = {
     id: nanoid(10),
     sessionId,

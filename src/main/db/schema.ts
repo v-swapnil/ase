@@ -145,3 +145,20 @@ export const settings = sqliteTable('settings', {
   key: text('key').primaryKey(),
   value: text('value').notNull(),
 });
+
+export const memories = sqliteTable(
+  'memories',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    type: text('type').notNull(),
+    content: text('content').notNull(),
+    sessionId: text('session_id').notNull(),
+    taskId: text('task_id'),
+    createdAt: integer('created_at').notNull(),
+  },
+  (t) => ({
+    sessionIdx: index('idx_memories_session').on(t.sessionId),
+    taskIdx: index('idx_memories_task').on(t.taskId),
+    typeIdx: index('idx_memories_type').on(t.type),
+  }),
+);

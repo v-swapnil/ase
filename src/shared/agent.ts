@@ -11,7 +11,9 @@ export type ToolName =
   | 'git_diff'
   | 'git_branch'
   | 'git_commit'
-  | 'ask_user';
+  | 'ask_user'
+  | 'read_session_memories'
+  | 'add_session_memory';
 
 /** ───────── Plan ───────── */
 

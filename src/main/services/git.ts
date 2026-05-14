@@ -71,8 +71,11 @@ export async function getWorktreeRoot(cwd: string): Promise<string | null> {
 }
 
 export async function workspaceStatus(workspaceId: string): Promise<GitStatus> {
-  const ws = await getWorkspace(workspaceId);
-  if (!(await isRepo(ws.path))) {
+  return workspaceStatusAtPath((await getWorkspace(workspaceId)).path);
+}
+
+export async function workspaceStatusAtPath(path: string): Promise<GitStatus> {
+  if (!(await isRepo(path))) {
     return {
       isRepo: false,
       branch: null,
@@ -89,7 +92,7 @@ export async function workspaceStatus(workspaceId: string): Promise<GitStatus> {
       clean: true,
     };
   }
-  const s: StatusResult = await gitFor(ws.path).status();
+  const s: StatusResult = await gitFor(path).status();
   return {
     isRepo: true,
     branch: s.current,
@@ -113,11 +116,14 @@ export async function workspaceStatus(workspaceId: string): Promise<GitStatus> {
 }
 
 export async function workspaceDiff(workspaceId: string, staged = false): Promise<GitDiff> {
-  const ws = await getWorkspace(workspaceId);
-  if (!(await isRepo(ws.path))) {
+  return workspaceDiffAtPath((await getWorkspace(workspaceId)).path, staged);
+}
+
+export async function workspaceDiffAtPath(path: string, staged = false): Promise<GitDiff> {
+  if (!(await isRepo(path))) {
     return { isRepo: false, unifiedDiff: '', staged };
   }
-  const g = gitFor(ws.path);
+  const g = gitFor(path);
   const args = staged ? ['--cached'] : [];
   // Include untracked files in working diff via no-index trick.
   const tracked = await g.diff(args);
@@ -142,10 +148,12 @@ export async function showFileAtHead(
   workspaceId: string,
   filePath: string,
 ): Promise<string | null> {
-  const ws = await getWorkspace(workspaceId);
-  if (!(await isRepo(ws.path))) return null;
+  return showFileAtHeadAtPath((await getWorkspace(workspaceId)).path, filePath);
+}
 
-  const g = gitFor(ws.path);
+export async function showFileAtHeadAtPath(basePath: string, filePath: string): Promise<string | null> {
+  if (!(await isRepo(basePath))) return null;
+  const g = gitFor(basePath);
   try {
     return await g.show([`HEAD:${filePath}`]);
     // return await g.raw(['show', '--no-patch', '--pretty=', `HEAD:${filePath}`]);
@@ -160,10 +168,12 @@ export async function fileDiff(
   filePath: string,
   staged = false,
 ): Promise<string> {
-  const ws = await getWorkspace(workspaceId);
-  if (!(await isRepo(ws.path))) return '';
+  return fileDiffAtPath((await getWorkspace(workspaceId)).path, filePath, staged);
+}
 
-  const g = gitFor(ws.path);
+export async function fileDiffAtPath(basePath: string, filePath: string, staged = false): Promise<string> {
+  if (!(await isRepo(basePath))) return '';
+  const g = gitFor(basePath);
   if (staged) {
     return g.diff(['--cached', '--', filePath]);
   }

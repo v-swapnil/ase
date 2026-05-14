@@ -40,6 +40,8 @@ export interface RunCtx {
   stepIdx: { n: number };
   /** Hint surfaced by the critic when looping back. */
   hint?: string;
+  /** Persisted session memory included in all task prompts. */
+  sessionMemory?: string | null;
 }
 
 function ctxOf(config?: RunnableConfig): RunCtx {
@@ -300,7 +302,7 @@ async function plannerNode(
       ctx,
       'planner',
       PLANNER_SYSTEM,
-      plannerUser(state.prompt, catalog, env),
+      plannerUser(state.prompt, catalog, env, ctx.sessionMemory),
     );
     if (!plan?.steps?.length) throw new Error('planner returned empty plan');
     plan.steps = plan.steps.map((s, i) => ({
@@ -354,7 +356,16 @@ async function executorNode(
         ctx,
         'executor',
         EXECUTOR_SYSTEM,
-        executorUser(state.prompt, plan, planStep.id, histForLLM, skills, env, stepHint),
+        executorUser(
+          state.prompt,
+          plan,
+          planStep.id,
+          histForLLM,
+          skills,
+          env,
+          stepHint,
+          ctx.sessionMemory,
+        ),
       );
       stepHint = undefined;
 
@@ -483,7 +494,7 @@ async function criticNode(
       ctx,
       'critic',
       CRITIC_SYSTEM,
-      criticUser(state.prompt, state.plan!, state.history, testReport),
+      criticUser(state.prompt, state.plan!, state.history, testReport, ctx.sessionMemory),
     );
     emitStepFinished(ctx, stepId, true, verdict);
     taskBus.emit(ctx.taskId, {

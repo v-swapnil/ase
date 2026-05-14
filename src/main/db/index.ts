@@ -76,6 +76,17 @@ CREATE INDEX IF NOT EXISTS idx_task_events_task ON task_events(task_id);
 CREATE TABLE IF NOT EXISTS settings (
   key TEXT PRIMARY KEY, value TEXT NOT NULL
 );
+CREATE TABLE IF NOT EXISTS memories (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  type TEXT NOT NULL,
+  content TEXT NOT NULL,
+  session_id TEXT NOT NULL,
+  task_id TEXT,
+  created_at INTEGER NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_memories_session ON memories(session_id);
+CREATE INDEX IF NOT EXISTS idx_memories_task ON memories(task_id);
+CREATE INDEX IF NOT EXISTS idx_memories_type ON memories(type);
 CREATE TABLE IF NOT EXISTS worktrees (
   id TEXT PRIMARY KEY,
   workspace_id TEXT NOT NULL,

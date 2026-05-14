@@ -17,6 +17,7 @@ import {
   updateTask,
   setSessionKanbanLane,
 } from '../services/store.js';
+import { listSessionMemories } from '../services/memories.js';
 import { enqueueTask, cancelQueuedOrRunning } from '../orchestrator/queue.js';
 import { taskBus, type TaskEvent } from '../services/events.js';
 import { exportTaskReport } from '../services/reports.js';
@@ -39,7 +40,8 @@ export const sessionRouter = router({
     .query(({ input }) => {
       const session = getSession(input.id);
       const worktree = getWorktreeForSession(input.id);
-      return { ...session, worktree: worktree ?? undefined };
+      const memory = listSessionMemories(input.id);
+      return { ...session, worktree: worktree ?? undefined, memory };
     }),
 
   rename: publicProcedure
@@ -48,6 +50,10 @@ export const sessionRouter = router({
       renameSession(input.id, input.title);
       return { ok: true as const };
     }),
+
+  memories: publicProcedure
+    .input(z.object({ sessionId: z.string().min(1) }))
+    .query(({ input }) => listSessionMemories(input.sessionId)),
 
   delete: publicProcedure.input(z.object({ id: z.string().min(1) })).mutation(({ input }) => {
     deleteSession(input.id);

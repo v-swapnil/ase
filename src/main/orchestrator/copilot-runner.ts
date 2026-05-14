@@ -27,7 +27,7 @@ const log = logger.child({ mod: 'copilot-runner' });
 
 export async function runTaskViaCopilot(
   taskId: string,
-  workspace: { workspaceId: string; workspacePath: string },
+  workspace: { workspaceId: string; workspacePath: string; memoryText?: string | null },
   signal: AbortSignal,
 ): Promise<TaskResult> {
   const service = getCopilotService();
@@ -76,7 +76,9 @@ export async function runTaskViaCopilot(
 
   try {
     const task = await getTask(taskId);
-    const result = await session.sendAndWait({ prompt: task.prompt }, 10 * 60 * 1000);
+    const memory = workspace.memoryText?.trim();
+    const prompt = memory ? `${task.prompt}\n\nSession memory:\n${memory}` : task.prompt;
+    const result = await session.sendAndWait({ prompt }, 10 * 60 * 1000);
 
     const succeeded = !!result;
     return {

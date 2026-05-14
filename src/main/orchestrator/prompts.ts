@@ -69,6 +69,7 @@ export function plannerUser(
   prompt: string,
   skills: SkillCatalogEntry[],
   env: EnvironmentContext,
+  memory?: string | null,
 ): string {
   const skillsStr = skills.length
     ? [
@@ -87,6 +88,8 @@ export function plannerUser(
     : '(none enabled)';
   return `USER GOAL:
 ${prompt}
+
+${memory?.trim() ? `SESSION MEMORY:\n${memory.trim()}\n` : ''}
 
 Here is some useful information about the environment you are running in:
 ${formatEnvContext(env)}
@@ -129,6 +132,7 @@ export function executorUser(
   skills: { name: string; body: string }[],
   env: EnvironmentContext,
   hint?: string,
+  memory?: string | null,
 ): string {
   const planStr = plan.steps
     .map((s) => `${s.id === currentStepId ? '→' : ' '} [${s.id}] ${s.goal}`)
@@ -147,6 +151,8 @@ export function executorUser(
 
   return `OVERALL GOAL:
 ${goal}
+
+${memory?.trim() ? `SESSION MEMORY:\n${memory.trim()}\n` : ''}
 
 Here is some useful information about the environment you are running in:
 ${formatEnvContext(env)}
@@ -182,9 +188,12 @@ export function criticUser(
   plan: Plan,
   history: Observation[],
   testReport: TestReport,
+  memory?: string | null,
 ): string {
   return `USER GOAL:
 ${prompt}
+
+${memory?.trim() ? `SESSION MEMORY:\n${memory.trim()}\n` : ''}
 
 PLAN:
 ${plan.steps.map((s) => `[${s.id}] ${s.goal}`).join('\n')}

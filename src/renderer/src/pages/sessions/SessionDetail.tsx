@@ -20,6 +20,7 @@ export function SessionDetail({
   const create = trpc.task.create.useMutation({
     onSuccess: async (t) => {
       await utils.task.list.invalidate({ sessionId });
+      await utils.session.get.invalidate({ id: sessionId });
       onTaskFocus(t.id);
       setPrompt('');
     },
@@ -75,7 +76,10 @@ export function SessionDetail({
         onSubmit={(e) => {
           e.preventDefault();
           if (!prompt.trim()) return;
-          create.mutate({ sessionId, prompt: prompt.trim() });
+          create.mutate({
+            sessionId,
+            prompt: prompt.trim(),
+          });
         }}
       >
         <textarea
@@ -87,7 +91,12 @@ export function SessionDetail({
           onKeyDown={(e) => {
             if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
               e.preventDefault();
-              if (prompt.trim()) create.mutate({ sessionId, prompt: prompt.trim() });
+              if (prompt.trim()) {
+                create.mutate({
+                  sessionId,
+                  prompt: prompt.trim(),
+                });
+              }
             }
           }}
         />

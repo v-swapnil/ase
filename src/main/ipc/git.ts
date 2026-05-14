@@ -1,31 +1,47 @@
 import { z } from 'zod';
 import { router, publicProcedure } from './trpc.js';
 import {
-  workspaceStatus,
-  workspaceDiff,
-  showFileAtHead,
-  fileDiff,
+  workspaceStatusAtPath,
+  workspaceDiffAtPath,
+  showFileAtHeadAtPath,
+  fileDiffAtPath,
   currentBranch,
   createBranch,
   commitAll,
 } from '../services/git.js';
 import { getSetting, setSetting, SETTING_KEYS } from '../services/settings.js';
+import { getWorkspace } from '../services/workspaces.js';
+import { getWorktree } from '../services/worktrees.js';
 
-const workspaceIn = z.object({ workspaceId: z.string().min(1) });
+const workspaceIn = z.object({ workspaceId: z.string().min(1), worktreeId: z.string().optional() });
+
+async function resolveGitPath(workspaceId: string, worktreeId?: string): Promise<string> {
+  const ws = await getWorkspace(workspaceId);
+  if (!worktreeId) return ws.path;
+  const wt = getWorktree(worktreeId);
+  if (!wt || wt.workspaceId !== workspaceId || wt.status !== 'active') return ws.path;
+  return wt.path;
+}
 
 export const gitRouter = router({
   status: publicProcedure
     .input(workspaceIn)
-    .query(({ input }) => workspaceStatus(input.workspaceId)),
+    .query(async ({ input }) => workspaceStatusAtPath(await resolveGitPath(input.workspaceId, input.worktreeId))),
   diff: publicProcedure
     .input(workspaceIn.extend({ staged: z.boolean().optional() }))
-    .query(({ input }) => workspaceDiff(input.workspaceId, !!input.staged)),
+    .query(async ({ input }) =>
+      workspaceDiffAtPath(await resolveGitPath(input.workspaceId, input.worktreeId), !!input.staged),
+    ),
   showFileAtHead: publicProcedure
     .input(workspaceIn.extend({ path: z.string().min(1) }))
-    .query(({ input }) => showFileAtHead(input.workspaceId, input.path)),
+    .query(async ({ input }) =>
+      showFileAtHeadAtPath(await resolveGitPath(input.workspaceId, input.worktreeId), input.path),
+    ),
   fileDiff: publicProcedure
     .input(workspaceIn.extend({ path: z.string().min(1), staged: z.boolean().optional() }))
-    .query(({ input }) => fileDiff(input.workspaceId, input.path, !!input.staged)),
+    .query(async ({ input }) =>
+      fileDiffAtPath(await resolveGitPath(input.workspaceId, input.worktreeId), input.path, !!input.staged),
+    ),
   currentBranch: publicProcedure
     .input(workspaceIn)
     .query(({ input }) => currentBranch(input.workspaceId)),

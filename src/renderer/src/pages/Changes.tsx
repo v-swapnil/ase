@@ -160,11 +160,13 @@ function ChangedFileList({
 
 function DiffPanelEditor({
   workspaceId,
+  worktreeId,
   path,
   kind,
   originalFilePath,
 }: {
   workspaceId: string;
+  worktreeId?: string;
   path: string;
   kind: ChangeKind;
   originalFilePath?: string;
@@ -175,11 +177,14 @@ function DiffPanelEditor({
   const originalPath = originalFilePath ?? path;
 
   const original = trpc.git.showFileAtHead.useQuery(
-    { workspaceId, path: originalPath },
+    { workspaceId, worktreeId, path: originalPath },
     { enabled: kind !== 'created' && kind !== 'untracked' },
   );
 
-  const current = trpc.file.read.useQuery({ workspaceId, path }, { enabled: kind !== 'deleted' });
+  const current = trpc.file.readForWorktree.useQuery(
+    { workspaceId, worktreeId, path },
+    { enabled: kind !== 'deleted' },
+  );
 
   const originalText = kind === 'created' || kind === 'untracked' ? '' : (original.data ?? '');
   const modifiedText = kind === 'deleted' ? '' : (current.data?.content ?? '');
@@ -227,11 +232,23 @@ function DiffPanel({
   setActive,
 }: {
   workspaceId: string;
+  worktreeId?: string;
   active: ActiveChange | null;
   setActive: (change: ActiveChange | null) => void;
 }) {
-  const status = trpc.git.status.useQuery({ workspaceId }, { refetchInterval: 5000 });
+  const [worktreeId, setWorktreeId] = useState<string>('');
+
+  const status = trpc.git.status.useQuery({ workspaceId, worktreeId }, { refetchInterval: 5000 });
+
   const workspace = trpc.workspace.get.useQuery({ id: workspaceId });
+  const worktrees = trpc.worktree.list.useQuery();
+
+  useEffect(() => {
+    const activeIds = new Set(
+      (worktrees.data ?? []).filter((w) => w.status === 'active').map((w) => w.id),
+    );
+    if (worktreeId && !activeIds.has(worktreeId)) setWorktreeId('');
+  }, [worktreeId, worktrees.data]);
 
   const filesBySection = useMemo(() => {
     const staged: ChangedFile[] = [];
@@ -342,6 +359,29 @@ function DiffPanel({
             {summary || 'no working changes'}
           </div>
         </div>
+
+        <div className="mb-2 flex items-center justify-end">
+          <label className="mr-2 font-mono text-ui-xs uppercase tracking-widest2 text-ink-500">
+            source
+          </label>
+          <select
+            value={worktreeId}
+            onChange={(e) => {
+              setWorktreeId(e.target.value);
+              setActive(null);
+            }}
+            className="rounded border border-ink-700 bg-ink-950 px-3 py-1.5 font-mono text-ui-sm text-ink-200 focus:border-amber-700/60 focus:outline-none"
+          >
+            <option value="">workspace root</option>
+            {(worktrees.data ?? [])
+              .filter((w) => w.status === 'active')
+              .map((w) => (
+                <option key={w.id} value={w.id}>
+                  {w.branch}
+                </option>
+              ))}
+          </select>
+        </div>
       </div>
 
       <div className="flex min-h-0 flex-1">
@@ -369,7 +409,7 @@ function DiffPanel({
               />
             )}
           </div>
-          <SectionHeader>Others ({filesBySection.others.length})</SectionHeader>
+          <SectionHeader>Unstaged ({filesBySection.others.length})</SectionHeader>
           <div className="min-h-0 flex-1 overflow-y-auto">
             {status.data && !status.data.isRepo ? (
               <div className="px-3 py-3 font-mono text-ui-xs text-ink-500">
@@ -406,6 +446,7 @@ function DiffPanel({
           ) : active ? (
             <DiffPanelEditor
               workspaceId={workspaceId}
+              worktreeId={worktreeId}
               path={active.path}
               kind={active.kind}
               originalFilePath={active.originalPath}
@@ -434,5 +475,11 @@ export function Changes() {
     );
   }
 
-  return <DiffPanel workspaceId={workspaceId} active={active} setActive={setActive} />;
+  return (
+    <div className="flex h-full min-h-0 flex-col">
+      <div className="min-h-0 flex-1">
+        <DiffPanel workspaceId={workspaceId} active={active} setActive={setActive} />
+      </div>
+    </div>
+  );
 }

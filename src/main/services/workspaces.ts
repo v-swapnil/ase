@@ -150,7 +150,14 @@ export async function readWorkspaceFile(
   relPath: string,
 ): Promise<{ content: string; size: number; truncated: boolean }> {
   const ws = await getWorkspace(workspaceId);
-  const abs = safeJoin(ws.path, relPath);
+  return readTextFileFromRoot(ws.path, relPath);
+}
+
+export async function readTextFileFromRoot(
+  rootPath: string,
+  relPath: string,
+): Promise<{ content: string; size: number; truncated: boolean }> {
+  const abs = safeJoin(rootPath, relPath);
   const s = await stat(abs);
   if (s.isDirectory()) throw new Error('is a directory');
   const truncated = s.size > MAX_FILE_BYTES;

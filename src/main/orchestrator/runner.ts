@@ -9,8 +9,10 @@ import { logger } from '../services/logger.js';
 import { clearTaskApprovals } from '../services/approvals.js';
 import { createBranch, commitAll } from '../services/git.js';
 import { getWorktreeForSession } from '../services/worktrees.js';
+import { listSessionMemories } from '../services/memories.js';
 import { existsSync } from 'node:fs';
-import { buildGraph, type RunCtx, type AgentState } from './graph.js';
+import { buildGraph, type RunCtx } from './graph.js';
+import type { AgentState } from './state.js';
 import { runTaskViaCopilot } from './copilot-runner.js';
 import type { TaskResult } from '@shared/agent';
 
@@ -130,6 +132,7 @@ async function doRunInner(taskId: string, ctrl: AbortController): Promise<TaskRe
     workspaceId: session.workspaceId,
     workspacePath: session.workspacePath,
     model,
+    sessionMemory: session.memoryText,
     signal: ctrl.signal,
     stepIdx: { n: 0 },
   };
@@ -237,16 +240,37 @@ async function loadSessionWorkspace(task: Task): Promise<{
   workspaceId: string;
   workspacePath: string;
   hasWorktree: boolean;
+  memoryText: string | null;
 }> {
   const sess = getDb().select().from(sessions).where(eq(sessions.id, task.sessionId)).get();
   if (!sess) throw new Error(`session not found for task ${task.id}`);
   const ws = await getWorkspace(sess.workspaceId);
 
+  const sessionMemories = listSessionMemories(task.sessionId);
+  const memoryText =
+    sessionMemories.length > 0
+      ? sessionMemories
+          .slice(0, 40)
+          .reverse()
+          .map((m) => `[${m.type}] ${m.content}`)
+          .join('\n')
+      : null;
+
   // Use worktree path if one exists and is valid on disk
   const worktree = getWorktreeForSession(task.sessionId);
   if (worktree && existsSync(worktree.path)) {
-    return { workspaceId: ws.id, workspacePath: worktree.path, hasWorktree: true };
+    return {
+      workspaceId: ws.id,
+      workspacePath: worktree.path,
+      hasWorktree: true,
+      memoryText,
+    };
   }
 
-  return { workspaceId: ws.id, workspacePath: ws.path, hasWorktree: false };
+  return {
+    workspaceId: ws.id,
+    workspacePath: ws.path,
+    hasWorktree: false,
+    memoryText,
+  };
 }
